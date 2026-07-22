@@ -1,0 +1,561 @@
+---
+import type { OperationName } from "../concept/OperationAvailability.astro";
+
+interface Props {
+  conceptId: "fibonacci" | "prime" | "square";
+  conceptName: string;
+  availability: {
+    number: OperationName[];
+    bigint: OperationName[];
+  };
+}
+
+const { conceptId, conceptName, availability } = Astro.props;
+
+const operationCopy: Record<OperationName, {
+  title: string;
+  description: string;
+  label: string;
+  defaultValue: string;
+}> = {
+  term: {
+    title: "第n項を計算",
+    description: "公開APIは0始まりです。添字nに対応する1つの項を計算します。",
+    label: "添字 n",
+    defaultValue: "10",
+  },
+  take: {
+    title: "最初のn項を生成",
+    description: "take(100) は最初の100項です。",
+    label: "項数",
+    defaultValue: "20",
+  },
+  upTo: {
+    title: "指定値以下を生成",
+    description: "upTo(100) は100以下のすべての該当数です。take(100) とは意味が異なります。",
+    label: "上限",
+    defaultValue: "100",
+  },
+  has: {
+    title: "所属を判定",
+    description: `入力した整数が${conceptName}に属するかを、人が読める文で判定します。`,
+    label: "判定する値",
+    defaultValue: conceptId === "prime" ? "97" : conceptId === "square" ? "49" : "55",
+  },
+  next: {
+    title: "次の該当数を計算",
+    description: "入力値より厳密に大きい最小の該当数です。添字上の「次の項」ではありません。",
+    label: "基準値",
+    defaultValue: "100",
+  },
+};
+
+const operationOrder: OperationName[] = ["term", "take", "upTo", "has", "next"];
+const visibleOperations = operationOrder.filter(
+  (operation) => availability.number.includes(operation) || availability.bigint.includes(operation),
+);
+---
+
+<div class="calculator" data-concept-calculator={conceptId}>
+  <noscript>
+    <p class="notice notice--warning">操作パネルを実行するにはJavaScriptを有効にしてください。定義・静的一覧・コード例はJavaScriptなしでも読めます。</p>
+  </noscript>
+
+  {visibleOperations.map((operation) => {
+    const copy = operationCopy[operation];
+    const supportedTypes = (["number", "bigint"] as const).filter((numericType) =>
+      availability[numericType].includes(operation),
+    );
+    const hasOutputFormat = operation === "take" || operation === "upTo";
+
+    return (
+      <section class="operation-panel" data-testid={`operation-${operation}`} data-operation={operation}>
+        <div class="operation-panel__heading">
+          <div>
+            <p class="eyebrow"><code>{operation}()</code></p>
+            <h3>{copy.title}</h3>
+          </div>
+          <span class="workload-badge" data-workload>即時に計算可能</span>
+        </div>
+        <p>{copy.description}</p>
+
+        <form novalidate>
+          <div class="operation-controls">
+            <label class="input-field">
+              <span>{copy.label}</span>
+              <input
+                type="text"
+                inputmode="numeric"
+                name="input"
+                value={copy.defaultValue}
+                autocomplete="off"
+                spellcheck="false"
+                aria-describedby={`${conceptId}-${operation}-input-help`}
+              />
+            </label>
+
+            <fieldset>
+              <legend>数値型</legend>
+              <div class="segmented-control">
+                {supportedTypes.map((numericType, index) => (
+                  <label>
+                    <input
+                      type="radio"
+                      name="numericType"
+                      value={numericType}
+                      checked={index === 0}
+                    />
+                    <span>{numericType === "number" ? "Number" : "BigInt"}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            {hasOutputFormat && (
+              <fieldset>
+                <legend>出力形式</legend>
+                <div class="segmented-control segmented-control--format">
+                  {[
+                    ["display", "表示用一覧"],
+                    ["javascript", "JavaScript"],
+                    ["json", "JSON"],
+                    ["csv", "CSV"],
+                  ].map(([value, label], index) => (
+                    <label>
+                      <input
+                        type="radio"
+                        name="outputFormat"
+                        value={value}
+                        checked={index === 0}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+          </div>
+
+          <p class="field-help" id={`${conceptId}-${operation}-input-help`}>
+            小数や指数表記は使えません。NumberとBigIntは自動では切り替わりません。
+          </p>
+          <button class="primary-button" type="submit">実行する</button>
+        </form>
+
+        <div
+          class="operation-result"
+          data-testid="operation-result"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <p class="operation-result__placeholder">入力して実行すると、ここに結果とコードが表示されます。</p>
+        </div>
+
+        <div class="result-details" hidden data-result-details>
+          <div>
+            <p class="result-details__label">実行したコード</p>
+            <pre tabindex="0"><code data-result-code></code></pre>
+          </div>
+          <dl>
+            <div>
+              <dt>使用した実装</dt>
+              <dd data-result-implementation>—</dd>
+            </div>
+            <div>
+              <dt>使用アルゴリズム</dt>
+              <dd data-result-algorithm>—</dd>
+            </div>
+          </dl>
+          <p class="notice" hidden data-json-note></p>
+          <div class="result-actions" data-result-actions>
+            <button type="button" data-copy="code">コードをコピー</button>
+            <button type="button" data-copy="display">結果をコピー</button>
+            <button type="button" data-copy="json">JSONをコピー</button>
+            <button type="button" data-copy="csv">CSVをコピー</button>
+            <button type="button" data-download>テキストファイルとして保存</button>
+          </div>
+          <span class="visually-hidden" aria-live="polite" data-copy-status></span>
+        </div>
+      </section>
+    );
+  })}
+
+  <p class="calculator-limit-note">
+    このサイト上では、表示は一度に1,000項、JSON・CSVなどの出力は10,000項までです。
+    これはライブラリ自体の数学的な上限ではありません。
+  </p>
+</div>
+
+<script>
+  import { executeOperation } from "../../lib/executeOperation";
+
+  type OutputFormat = "display" | "javascript" | "json" | "csv";
+  type UiResult = {
+    display: string;
+    code: string;
+    json: string;
+    csv: string;
+    javascript?: string;
+    humanMessage?: string;
+    warning?: string;
+    jsonNote?: string;
+    metadata?: {
+      source?: string;
+      implementationId?: string;
+      algorithmName?: string;
+      algorithmId?: string;
+    };
+  };
+
+  const resultByForm = new WeakMap<HTMLFormElement, UiResult>();
+
+  function selectedValue(form: HTMLFormElement, name: string, fallback: string) {
+    return new FormData(form).get(name)?.toString() ?? fallback;
+  }
+
+  function workloadFor(input: string, operation: string) {
+    const digits = input.replace(/^-/, "").length;
+    if (digits > 100 || (operation === "take" && Number(input) > 1_000)) {
+      return "ブラウザでの直接表示は非推奨";
+    }
+    if (digits > 30 || Number(input) > 10_000) return "やや大きい入力";
+    if ((operation === "take" || operation === "upTo") && Number(input) > 500) {
+      return "表示量が多い";
+    }
+    return "即時に計算可能";
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-concept-calculator]").forEach((calculator) => {
+    const conceptId = calculator.dataset.conceptCalculator as "fibonacci" | "prime" | "square";
+
+    calculator.querySelectorAll<HTMLElement>("[data-operation]").forEach((panel) => {
+      const form = panel.querySelector<HTMLFormElement>("form");
+      const resultArea = panel.querySelector<HTMLElement>("[data-testid='operation-result']");
+      const details = panel.querySelector<HTMLElement>("[data-result-details]");
+      const workload = panel.querySelector<HTMLElement>("[data-workload]");
+      const input = panel.querySelector<HTMLInputElement>("input[name='input']");
+      const operation = panel.dataset.operation as "term" | "take" | "upTo" | "has" | "next";
+      if (!form || !resultArea || !details || !input) return;
+
+      input.addEventListener("input", () => {
+        if (workload) workload.textContent = workloadFor(input.value, operation);
+      });
+
+      form.querySelectorAll<HTMLInputElement>("input[name='numericType'], input[name='outputFormat']")
+        .forEach((control) => {
+          control.addEventListener("change", () => {
+            resultByForm.delete(form);
+            details.hidden = true;
+            resultArea.classList.remove("operation-result--error");
+            resultArea.textContent = "数値型または出力形式を変更しました。再度実行してください。";
+          });
+        });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        details.hidden = true;
+        resultArea.classList.remove("operation-result--error");
+        resultArea.setAttribute("aria-busy", "true");
+        resultArea.textContent = "計算しています…";
+
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+
+        try {
+          const outputFormat = selectedValue(form, "outputFormat", "display") as OutputFormat;
+          const calculated = await Promise.resolve(executeOperation({
+            conceptId,
+            numericType: selectedValue(form, "numericType", "number") as "number" | "bigint",
+            operation,
+            input: input.value,
+            outputFormat,
+          })) as UiResult;
+
+          resultByForm.set(form, calculated);
+          const selectedOutput = outputFormat === "json"
+            ? calculated.json
+            : outputFormat === "csv"
+              ? calculated.csv
+              : outputFormat === "javascript"
+                ? (calculated.javascript ?? calculated.display)
+                : calculated.display;
+          resultArea.textContent = [calculated.humanMessage, selectedOutput, calculated.warning]
+            .filter(Boolean)
+            .join("\n");
+
+          const code = details.querySelector<HTMLElement>("[data-result-code]");
+          const implementation = details.querySelector<HTMLElement>("[data-result-implementation]");
+          const algorithm = details.querySelector<HTMLElement>("[data-result-algorithm]");
+          const jsonNote = details.querySelector<HTMLElement>("[data-json-note]");
+          if (code) code.textContent = calculated.code;
+          if (implementation) {
+            const source = calculated.metadata?.source === "derived" ? "派生実装" : "ネイティブ実装";
+            implementation.textContent = calculated.metadata?.implementationId
+              ? `${source} — ${calculated.metadata.implementationId}`
+              : source;
+          }
+          if (algorithm) {
+            algorithm.textContent = calculated.metadata?.algorithmName
+              ?? calculated.metadata?.algorithmId
+              ?? "実装情報なし";
+          }
+          if (jsonNote) {
+            jsonNote.hidden = !calculated.jsonNote;
+            jsonNote.textContent = calculated.jsonNote ?? "";
+          }
+          details.hidden = false;
+        } catch (error) {
+          resultByForm.delete(form);
+          resultArea.classList.add("operation-result--error");
+          resultArea.textContent = error instanceof Error
+            ? error.message
+            : "計算中にエラーが発生しました。入力を確認してください。";
+        } finally {
+          resultArea.removeAttribute("aria-busy");
+        }
+      });
+
+      details.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const result = resultByForm.get(form);
+          const key = button.dataset.copy as "code" | "display" | "json" | "csv";
+          const status = details.querySelector<HTMLElement>("[data-copy-status]");
+          if (!result || !status) return;
+          try {
+            await navigator.clipboard.writeText(result[key]);
+            status.textContent = `${button.textContent ?? "内容"}を完了しました。`;
+          } catch {
+            status.textContent = "コピーできませんでした。表示内容を選択してコピーしてください。";
+          }
+        });
+      });
+
+      details.querySelector<HTMLButtonElement>("[data-download]")?.addEventListener("click", () => {
+        const result = resultByForm.get(form);
+        if (!result) return;
+        const format = selectedValue(form, "outputFormat", "display") as OutputFormat;
+        const text = format === "json" ? result.json : format === "csv" ? result.csv : result.display;
+        const extension = format === "json" ? "json" : format === "csv" ? "csv" : "txt";
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${conceptId}-${operation}.${extension}`;
+        link.click();
+        URL.revokeObjectURL(url);
+      });
+    });
+  });
+</script>
+
+<style>
+  .calculator {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .operation-panel {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+  }
+
+  .operation-panel__heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .operation-panel__heading h3 {
+    margin-block: 0.1rem 0;
+  }
+
+  .workload-badge {
+    border-radius: 999px;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-ink);
+    font-size: 0.78rem;
+    line-height: 1.2;
+    padding: 0.45rem 0.7rem;
+    text-align: center;
+  }
+
+  .operation-controls {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) repeat(2, minmax(12rem, 1fr));
+    gap: 0.9rem;
+    align-items: end;
+  }
+
+  .input-field {
+    display: grid;
+    gap: 0.45rem;
+    font-weight: 700;
+  }
+
+  .input-field input {
+    font: 600 1rem/1.2 var(--font-mono);
+    min-height: 2.8rem;
+  }
+
+  fieldset {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+  }
+
+  legend {
+    font-weight: 700;
+    margin-bottom: 0.45rem;
+  }
+
+  .segmented-control {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .segmented-control label {
+    cursor: pointer;
+    display: inline-flex;
+    margin: 0;
+    position: relative;
+  }
+
+  .segmented-control input {
+    cursor: pointer;
+    height: 100%;
+    inset: 0;
+    margin: 0;
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    z-index: 1;
+  }
+
+  .segmented-control span {
+    align-items: center;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 0.45rem;
+    display: inline-flex;
+    min-height: 2.8rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .segmented-control input:checked + span {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+    font-weight: 700;
+  }
+
+  .segmented-control input:focus-visible + span {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .segmented-control--format span {
+    min-height: 2.4rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .field-help {
+    color: var(--color-text-muted);
+    font-size: 0.86rem;
+  }
+
+  .operation-result {
+    background: var(--color-code);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    min-height: 4.25rem;
+    overflow-wrap: anywhere;
+    padding: 1rem;
+    white-space: pre-wrap;
+  }
+
+  .operation-result--error {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+  }
+
+  .operation-result__placeholder {
+    color: var(--color-text-muted);
+    font-family: var(--font-sans);
+    margin: 0;
+  }
+
+  .result-details {
+    margin-top: 1rem;
+  }
+
+  .result-details__label {
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+  }
+
+  .result-details pre {
+    margin: 0;
+  }
+
+  .result-details dl {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .result-details dl > div {
+    border-left: 2px solid var(--color-border);
+    padding-left: 0.7rem;
+  }
+
+  .result-details dt {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+  }
+
+  .result-details dd {
+    margin: 0.25rem 0 0;
+    overflow-wrap: anywhere;
+  }
+
+  .result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .calculator-limit-note {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 860px) {
+    .operation-controls {
+      grid-template-columns: 1fr;
+    }
+
+    .operation-panel__heading {
+      display: block;
+    }
+
+    .workload-badge {
+      display: inline-flex;
+      margin-top: 0.6rem;
+    }
+
+    .result-details dl {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

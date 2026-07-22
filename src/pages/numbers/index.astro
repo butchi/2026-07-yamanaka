@@ -1,0 +1,58 @@
+---
+import OperationAvailability from "@/components/concept/OperationAvailability.astro";
+import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { conceptRegistry, publishedConcepts } from "@/lib/conceptRegistry";
+
+const concepts = publishedConcepts.map((id) => conceptRegistry[id]);
+---
+
+<BaseLayout
+  title="数の一覧｜整数列・整数集合のJavaScriptツール"
+  description="フィボナッチ数、素数、平方数の定義、最初の項、Number・BigInt対応、利用できる操作とOEIS番号を一覧で比較できます。"
+  breadcrumbs={[{ label: "数の一覧" }]}
+>
+  <header class="page-header">
+    <p class="eyebrow">NUMBER CATALOG</p>
+    <h1>登録済みの数の一覧</h1>
+    <p class="lead">
+      数の定義と最初の項を見比べ、詳細ページで実際のライブラリAPIを使って生成・判定できます。
+      操作の可否はインストール済みライブラリの定義から取得しています。
+    </p>
+  </header>
+
+  <div class="catalog-list">
+    {concepts.map((concept) => {
+      const availability = {
+        number: concept.capabilities.number.map(({ operation }) => operation),
+        bigint: concept.capabilities.bigint.map(({ operation }) => operation),
+      };
+
+      return (
+        <article class="catalog-item">
+          <div class="catalog-item__summary">
+            <div>
+              <p class="concept-card__english">{concept.meta.name.en}</p>
+              <h2><a href={`/numbers/${concept.id}/`}>{concept.meta.name.ja}</a></h2>
+            </div>
+            <div class="catalog-item__identifiers">
+              {concept.meta.oeis?.map((oeis) => (
+                <a href={`https://oeis.org/${oeis}`} aria-label={`${oeis}をOEISで見る`}>{oeis}</a>
+              ))}
+            </div>
+          </div>
+          <p>{concept.meta.description?.ja}</p>
+          <StaticSequenceList values={concept.staticTerms.slice(0, 10)} />
+          <OperationAvailability availability={availability} />
+          <div class="catalog-item__footer">
+            <p>
+              <span class="support-badge">Number対応</span>
+              <span class="support-badge">BigInt対応</span>
+            </p>
+            <a class="primary-link" href={`/numbers/${concept.id}/`}>{concept.meta.name.ja}の詳細へ</a>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</BaseLayout>

@@ -1,0 +1,46 @@
+---
+interface Props {
+  code: string;
+  label?: string;
+}
+
+const { code, label = "コード例" } = Astro.props;
+---
+
+<copy-code class="code-block">
+  <div class="code-block__bar">
+    <span>{label}</span>
+    <button type="button" data-copy-code>コードをコピー</button>
+  </div>
+  <pre tabindex="0"><code>{code}</code></pre>
+  <span class="visually-hidden" aria-live="polite" data-copy-status></span>
+</copy-code>
+
+<script>
+  class CopyCode extends HTMLElement {
+    connectedCallback() {
+      const button = this.querySelector<HTMLButtonElement>("[data-copy-code]");
+      const code = this.querySelector("code");
+      const status = this.querySelector<HTMLElement>("[data-copy-status]");
+
+      button?.addEventListener("click", async () => {
+        if (!code || !status) return;
+
+        try {
+          await navigator.clipboard.writeText(code.textContent ?? "");
+          status.textContent = "コードをコピーしました。";
+          button.textContent = "コピーしました";
+          window.setTimeout(() => {
+            button.textContent = "コードをコピー";
+          }, 1800);
+        } catch {
+          status.textContent = "コピーできませんでした。コードを選択してコピーしてください。";
+        }
+      });
+    }
+  }
+
+  if (!customElements.get("copy-code")) {
+    customElements.define("copy-code", CopyCode);
+  }
+</script>

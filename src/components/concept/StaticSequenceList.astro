@@ -1,0 +1,22 @@
+---
+interface Props {
+  values: Array<number | bigint | string>;
+  numericType?: "number" | "bigint";
+}
+
+const { values, numericType = "number" } = Astro.props;
+const formatted = values.map((value) =>
+  numericType === "bigint" || typeof value === "bigint" ? `${value.toString()}n` : value.toString(),
+);
+---
+
+<div class="sequence-strip" data-testid="static-sequence-list" tabindex="0">
+  <ol aria-label="最初の数項">
+    {formatted.map((value, index) => (
+      <li aria-label={`添字 ${index}: ${value}`}>
+        <span class="sequence-strip__index" data-index={index} aria-hidden="true"></span>
+        <code>{value}</code>{index < formatted.length - 1 && <span class="sequence-strip__separator" aria-hidden="true">, </span>}
+      </li>
+    ))}
+  </ol>
+</div>

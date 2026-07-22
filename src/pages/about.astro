@@ -1,0 +1,60 @@
+---
+import CodeBlock from "@/components/common/CodeBlock.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const dependencyCode = `@butchi/integer-sequences  ←  整数列ビューア
+       計算・メタ情報          表示・操作・SEO`;
+---
+
+<BaseLayout
+  title="このサイトについて｜整数列ビューア"
+  description="整数列ビューアの目的、整数列ライブラリとの責務分担、Number・BigIntの表示方針とブラウザ上の利用制限を説明します。"
+  breadcrumbs={[{ label: "このサイトについて" }]}
+>
+  <header class="page-header">
+    <p class="eyebrow">ABOUT</p>
+    <h1>数を探す人と、コードで使う人の間に</h1>
+    <p class="lead">
+      整数列ビューアは、数学的な一覧を探す人が定義と最初の項へすぐ到達でき、開発者が同じ画面でJavaScript APIを試せるようにするサイトです。
+    </p>
+  </header>
+
+  <section class="page-section split-section">
+    <div>
+      <p class="eyebrow">RESPONSIBILITY</p>
+      <h2>ライブラリとの関係</h2>
+      <p>
+        数の名称、OEIS、添字、利用可能な操作、アルゴリズム情報、計算そのものは独立した
+        <code>@butchi/integer-sequences</code> が担います。このサイトはSEO本文、表示順、操作UI、出力形式だけを担います。
+      </p>
+    </div>
+    <CodeBlock code={dependencyCode} label="依存方向" />
+  </section>
+
+  <section class="page-section">
+    <p class="eyebrow">NUMERIC TYPES</p>
+    <h2>NumberとBigInt</h2>
+    <div class="type-comparison">
+      <article>
+        <p class="type-badge">Number</p>
+        <p>安全整数の範囲で利用します。結果が正確に表現できない場合はエラーとして案内し、BigIntへ自動変換しません。</p>
+      </article>
+      <article>
+        <p class="type-badge">BigInt</p>
+        <p>画面とJavaScriptでは末尾に <code>n</code> を付けます。JSONにBigIntは直接入らないため、10進文字列として出力します。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="page-section">
+    <p class="eyebrow">LIMITS</p>
+    <h2>ブラウザ上の実行制限</h2>
+    <p>ページが長時間停止しないよう、表示1,000項、出力10,000項などの実用上限を設けています。これは数学的限界でもライブラリ自体の限界でもありません。</p>
+  </section>
+
+  <section class="page-section">
+    <p class="eyebrow">BLOG</p>
+    <h2>ブログとの役割分担</h2>
+    <p>ブログは背景知識と詳しい読み物、このサイトは実行・生成・コピー・JSON・CSV・実装情報を担当します。既存記事の移転や本文の大量複製は行いません。</p>
+  </section>
+</BaseLayout>

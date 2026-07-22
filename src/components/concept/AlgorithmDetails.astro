@@ -1,0 +1,80 @@
+---
+interface ImplementationInfo {
+  numericType: "number" | "bigint";
+  operation: string;
+  operationLabel: string;
+  source: "native" | "derived";
+  derivedFrom?: string;
+  implementationId?: string;
+  algorithmId?: string;
+  algorithmName?: string;
+  complexity?: Record<string, string>;
+  verification?: { method: string; maxInput?: string | number };
+  benchmarkId?: string;
+}
+
+interface Props {
+  implementations: ImplementationInfo[];
+}
+
+const { implementations } = Astro.props;
+const complexityLabels: Record<string, string> = {
+  time: "時間計算量",
+  space: "空間計算量",
+  arithmeticSteps: "算術ステップ",
+  bitComplexity: "ビット計算量",
+  outputSize: "出力量",
+  notes: "補足",
+};
+---
+
+<div class="implementation-list">
+  {implementations.map((item) => (
+    <details>
+      <summary>
+        <span>{item.operationLabel}</span>
+        <span class="type-badge">{item.numericType === "number" ? "Number" : "BigInt"}</span>
+        <span>{item.algorithmName ?? "実装情報なし"}</span>
+      </summary>
+      <dl class="definition-grid definition-grid--compact">
+        <div>
+          <dt>実装</dt>
+          <dd>{item.source === "native" ? "ネイティブ実装" : `派生実装（${item.derivedFrom ?? "既存操作"}から生成）`}</dd>
+        </div>
+        {item.implementationId && (
+          <div>
+            <dt>implementationId</dt>
+            <dd><code>{item.implementationId}</code></dd>
+          </div>
+        )}
+        {item.algorithmId && (
+          <div>
+            <dt>algorithmId</dt>
+            <dd><code>{item.algorithmId}</code></dd>
+          </div>
+        )}
+        {item.complexity && Object.entries(item.complexity).map(([key, value]) => (
+          <div>
+            <dt>{complexityLabels[key] ?? key}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+        {item.verification && (
+          <div>
+            <dt>検証方法</dt>
+            <dd>
+              {item.verification.method}
+              {item.verification.maxInput != null && `（最大入力: ${item.verification.maxInput}）`}
+            </dd>
+          </div>
+        )}
+        {item.benchmarkId && (
+          <div>
+            <dt>ベンチマーク参照ID</dt>
+            <dd><code>{item.benchmarkId}</code></dd>
+          </div>
+        )}
+      </dl>
+    </details>
+  ))}
+</div>

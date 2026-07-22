@@ -1,0 +1,136 @@
+---
+import CodeBlock from "@/components/common/CodeBlock.astro";
+import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { conceptRegistry, publishedConcepts } from "@/lib/conceptRegistry";
+
+const concepts = publishedConcepts.map((id) => conceptRegistry[id]);
+const compositionCode = `const fibonacci = number.fibonacci.term;
+const isPrime = number.prime.has;
+
+const fibonacciPrimes = range(100)
+  .map(fibonacci)
+  .filter(isPrime);`;
+---
+
+<BaseLayout
+  title="整数列ビューア｜一覧・判定・JavaScript出力"
+  description="フィボナッチ数、素数、平方数の定義と一覧を確認し、第n項・所属判定・JSONやCSV出力をブラウザで試せます。"
+>
+  <section class="home-intro page-section">
+    <p class="eyebrow">INTEGER SEQUENCE TOOLKIT</p>
+    <h1>数の並びを、読む。試す。コードで使う。</h1>
+    <p class="lead">
+      整数列ビューアは、数の定義と最初の項をすぐに確認し、JavaScriptライブラリの実際のAPIで生成・判定・コピーできる静的サイトです。
+    </p>
+    <div class="hero-actions">
+      <a class="primary-link" href="/numbers/">数の一覧を見る</a>
+      <a href="#できること">できることを確認</a>
+    </div>
+  </section>
+
+  <section class="page-section" aria-labelledby="featured-heading">
+    <div class="section-heading-row">
+      <div>
+        <p class="eyebrow">START HERE</p>
+        <h2 id="featured-heading">主要な数の概念</h2>
+      </div>
+      <a href="/numbers/">対応一覧へ</a>
+    </div>
+    <div class="concept-grid">
+      {concepts.map((concept) => (
+        <article class="concept-card">
+          <p class="concept-card__english">{concept.meta.name.en}</p>
+          <h3><a href={`/numbers/${concept.id}/`}>{concept.meta.name.ja}</a></h3>
+          <p>{concept.meta.description?.ja}</p>
+          <StaticSequenceList values={concept.staticTerms.slice(0, 8)} />
+          <a class="text-link" href={`/numbers/${concept.id}/`}>
+            {concept.meta.name.ja}を調べる <span aria-hidden="true">→</span>
+          </a>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="page-section" id="できること" aria-labelledby="features-heading">
+    <p class="eyebrow">WHAT YOU CAN DO</p>
+    <h2 id="features-heading">このサイトでできること</h2>
+    <div class="feature-grid">
+      <article>
+        <span class="feature-number">01</span>
+        <h3>定義と一覧を読む</h3>
+        <p>最初の20項、0の扱い、添字、OEIS番号をJavaScriptなしでも確認できます。</p>
+      </article>
+      <article>
+        <span class="feature-number">02</span>
+        <h3>生成・判定する</h3>
+        <p>第n項、最初のn項、指定値以下、所属判定、入力値より大きい次の数を試せます。</p>
+      </article>
+      <article>
+        <span class="feature-number">03</span>
+        <h3>結果を持ち出す</h3>
+        <p>結果と実行コードをJavaScript、JSON、CSVとしてコピーし、テキスト保存できます。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="page-section split-section" aria-labelledby="composition-heading">
+    <div>
+      <p class="eyebrow">COMPOSITION</p>
+      <h2 id="composition-heading">数の概念を組み合わせる</h2>
+      <p>
+        この例は「最初の100個のフィボナッチ数から素数を抽出する」という処理を、数列の第n項と素数判定の組み合わせで表しています。
+      </p>
+      <aside class="notice notice--warning">
+        <strong>Number版の精度について：</strong>
+        指定どおりのコードを掲載していますが、実際には79番目の計算で安全整数範囲を超えます。Number版で正確に実行する場合は
+        <code>range(79)</code> までにし、それより先はBigInt版と計算量を検討してください。
+      </aside>
+    </div>
+    <CodeBlock code={compositionCode} label="JavaScript" />
+  </section>
+
+  <section class="page-section split-section" aria-labelledby="numeric-types-heading">
+    <div>
+      <p class="eyebrow">NUMBER OR BIGINT</p>
+      <h2 id="numeric-types-heading">速さと正確さを明示的に選ぶ</h2>
+      <p>
+        Number版は扱いやすく高速ですが、安全整数の範囲を超える値を正確に表せません。BigInt版は大きな整数を正確に扱い、画面上では末尾の
+        <code>n</code> で区別します。
+      </p>
+      <p>サイトは自動切替を行いません。意図した数値型を操作ごとに選べます。</p>
+    </div>
+    <div class="type-comparison" aria-label="NumberとBigIntの比較">
+      <article>
+        <p class="type-badge">Number</p>
+        <code>8944394323791464</code>
+        <p>一般的なJavaScript数値。安全整数範囲を検証します。</p>
+      </article>
+      <article>
+        <p class="type-badge">BigInt</p>
+        <code>354224848179261915075n</code>
+        <p>大きな整数を正確に保持。JSONでは文字列へ変換します。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="page-section relation-grid" aria-labelledby="ecosystem-heading">
+    <div>
+      <p class="eyebrow">ECOSYSTEM</p>
+      <h2 id="ecosystem-heading">ブログ・ライブラリとの関係</h2>
+    </div>
+    <article>
+      <h3>ブログ</h3>
+      <p>背景知識、読み物、詳しい説明を担います。記事本文をこのサイトへ大量に複製しません。</p>
+    </article>
+    <article>
+      <h3>このサイト</h3>
+      <p>実行、生成、コピー、JSON・CSV、現在の実装情報を担います。</p>
+    </article>
+    <article>
+      <h3>整数列ライブラリ</h3>
+      <p>数学的な定義と計算APIの唯一の実装元です。</p>
+      <a href="https://www.npmjs.com/package/@butchi/integer-sequences">npmでライブラリを見る</a>
+    </article>
+  </section>
+</BaseLayout>

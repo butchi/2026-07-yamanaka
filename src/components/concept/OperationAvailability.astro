@@ -1,0 +1,48 @@
+---
+export type OperationName = "term" | "take" | "upTo" | "has" | "next";
+
+interface Props {
+  availability: {
+    number: OperationName[];
+    bigint: OperationName[];
+  };
+}
+
+const { availability } = Astro.props;
+const operationLabels: Record<OperationName, string> = {
+  term: "第n項",
+  take: "最初のn項",
+  upTo: "指定値以下",
+  has: "所属判定",
+  next: "次の該当数",
+};
+---
+
+<div class="availability-table" role="region" aria-label="利用可能な操作">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">数値型</th>
+        {Object.entries(operationLabels).map(([operation, label]) => (
+          <th scope="col" title={operation}>{label}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {(["number", "bigint"] as const).map((numericType) => (
+        <tr>
+          <th scope="row">{numericType === "number" ? "Number" : "BigInt"}</th>
+          {(Object.keys(operationLabels) as OperationName[]).map((operation) => (
+            <td>
+              {availability[numericType].includes(operation) ? (
+                <span class="availability-yes" aria-label="利用可能">利用可</span>
+              ) : (
+                <span class="availability-no" aria-label="提供なし">—</span>
+              )}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

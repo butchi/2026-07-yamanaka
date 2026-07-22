@@ -1,0 +1,149 @@
+---
+import Breadcrumbs from "@/components/layout/Breadcrumbs.astro";
+import Footer from "@/components/layout/Footer.astro";
+import Header from "@/components/layout/Header.astro";
+import "@/styles/global.css";
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string | URL;
+  ogImage?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  ogType?: "website" | "article";
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage = "/og.png",
+  breadcrumbs = [],
+  ogType = "website",
+} = Astro.props;
+
+const siteName = "整数列ビューア";
+const siteBase = Astro.site ?? new URL(Astro.url.origin);
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, siteBase);
+canonicalUrl.search = "";
+canonicalUrl.hash = "";
+
+const ogImageUrl = ogImage ? new URL(ogImage, siteBase).href : undefined;
+const normalizePath = (path: string) =>
+  path === "/" ? path : path.replace(/\/+$/, "");
+const currentPath = normalizePath(Astro.url.pathname);
+
+const suppliedBreadcrumbs = breadcrumbs.filter(
+  (item, index) =>
+    !(
+      index === 0 &&
+      (item.label === "ホーム" ||
+        (item.href &&
+          normalizePath(new URL(item.href, siteBase).pathname) === "/"))
+    ),
+);
+const breadcrumbItems: BreadcrumbItem[] = [
+  currentPath === "/"
+    ? { label: "ホーム" }
+    : { label: "ホーム", href: "/" },
+  ...suppliedBreadcrumbs,
+];
+
+if (currentPath !== "/") {
+  const lastItem = breadcrumbItems.at(-1);
+  const lastPath = lastItem?.href
+    ? normalizePath(new URL(lastItem.href, siteBase).pathname)
+    : undefined;
+
+  if (lastPath === currentPath && lastItem) {
+    breadcrumbItems[breadcrumbItems.length - 1] = { label: lastItem.label };
+  } else if (!lastItem || lastItem.href) {
+    breadcrumbItems.push({ label: title });
+  }
+}
+
+const websiteUrl = new URL("/", siteBase).href;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${websiteUrl}#website`,
+      name: siteName,
+      url: websiteUrl,
+      inLanguage: "ja",
+      description:
+        "整数列・整数集合をJavaScriptで調べ、生成し、コピーできるWebサイトです。",
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: breadcrumbItems.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.label,
+        item: item.href
+          ? new URL(item.href, siteBase).href
+          : canonicalUrl.href,
+      })),
+    },
+  ],
+};
+const serializedStructuredData = JSON.stringify(structuredData).replace(
+  /</g,
+  "\\u003c",
+);
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="color-scheme" content="light" />
+
+    <title>{title}</title>
+    <link rel="canonical" href={canonicalUrl.href} />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl.href} />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    {ogImageUrl && <meta property="og:image:width" content="1200" />}
+    {ogImageUrl && <meta property="og:image:height" content="630" />}
+    {ogImageUrl && <meta property="og:image:alt" content="整数列ビューア — 数の並びを、読む。試す。コードで使う。" />}
+
+    <meta
+      name="twitter:card"
+      content={ogImageUrl ? "summary_large_image" : "summary"}
+    />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
+    {ogImageUrl && <meta name="twitter:image:alt" content="整数列ビューア — 数の並びを、読む。試す。コードで使う。" />}
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={serializedStructuredData}
+    />
+    <slot name="head" />
+  </head>
+  <body>
+    <Header />
+    <Breadcrumbs items={breadcrumbItems} />
+    <main id="main-content" class="site-main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

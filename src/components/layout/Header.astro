@@ -1,0 +1,37 @@
+---
+const navigation = [
+  { href: "/numbers/", label: "数の一覧" },
+  { href: "/about/", label: "このサイトについて" },
+  { href: "/license/", label: "ライセンス" },
+] as const;
+
+const currentPath = Astro.url.pathname;
+const isCurrent = (href: string) => currentPath.startsWith(href);
+---
+
+<a class="skip-link" href="#main-content">本文へ移動</a>
+<header class="site-header">
+  <div class="site-container header-inner">
+    <a class="site-brand" href="/" aria-label="整数列ビューア ホーム">
+      <span class="site-brand-mark" aria-hidden="true">∑</span>
+      <span>整数列ビューア</span>
+    </a>
+
+    <nav class="primary-navigation" aria-label="主要ナビゲーション">
+      <ul>
+        {
+          navigation.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isCurrent(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

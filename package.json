@@ -1,0 +1,27 @@
+{
+  "name": "integer-sequence-web-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build && esbuild worker/index.ts --bundle --format=esm --platform=browser --outfile=dist/server/index.js && node scripts/stage-hosting.mjs",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@butchi/integer-sequences": "0.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/sitemap": "^3.7.3",
+    "@playwright/test": "^1.61.1",
+    "astro": "^7.1.3",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}
