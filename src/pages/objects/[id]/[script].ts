@@ -9,15 +9,17 @@ interface Props {
 
 export async function getStaticPaths() {
   return Promise.all(
-    publishedConcepts.map(async (id) => ({
-      params: { id },
-      props: {
-        source: await readFile(
-          resolve(process.cwd(), "objects", id, "functions.mjs"),
-          "utf8",
-        ),
-      },
-    })),
+    publishedConcepts.flatMap((id) =>
+      ["functions.js", "functions.mjs"].map(async (script) => ({
+        params: { id, script },
+        props: {
+          source: await readFile(
+            resolve(process.cwd(), "objects", id, script),
+            "utf8",
+          ),
+        },
+      })),
+    ),
   );
 }
 

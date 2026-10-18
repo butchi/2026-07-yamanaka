@@ -23,6 +23,15 @@ const { concept, object, document, digest, relatedConcepts } = Astro.props;
 const { meta } = concept;
 const content = object.data;
 const { Content } = await render(document);
+const moduleSources = import.meta.glob<string>("../../objects/*/functions.js", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+const moduleSource = moduleSources[`../../objects/${concept.id}/functions.js`];
+if (!moduleSource) {
+  throw new Error(`Missing standalone function module for "${concept.id}".`);
+}
 
 const operationLabels: Record<UiOperation, string> = {
   term: "第n項",
@@ -151,7 +160,7 @@ const includesZero = digest.data.terms.includes("0");
       <p class="eyebrow">FUNCTIONS / REFERENCE</p>
       <h2 id="availability-heading">関数 — 利用可能な操作</h2>
       <p>表示内容はライブラリの <code>operations</code> 定義と実在する関数から取得しています。</p>
-      <p>同じAPI名前空間を公開する、インポート可能なJavaScriptモジュールを対象ディレクトリに保持しています。</p>
+      <p>対象ディレクトリに、外部パッケージに依存せずコピーして使えるJavaScript実装を保持しています。関数の呼び出し形式はライブラリと共通です。</p>
       <OperationAvailability availability={availability} />
     </section>
 
@@ -166,16 +175,24 @@ const includesZero = digest.data.terms.includes("0");
     </section>
 
     <section class="page-section" aria-labelledby="code-heading">
-      <p class="eyebrow">API EXAMPLES</p>
+      <p class="eyebrow">STANDALONE JAVASCRIPT</p>
       <h2 id="code-heading">JavaScriptコード例</h2>
+      <p>実装全体をコピーし、デベロッパーツールのコンソールにそのまま貼り付けて実行できます。ファイル保存やnpmパッケージのインストールは不要です。複数の対象や同じ実装を続けて貼り付けることもできます。</p>
+      <details data-testid="standalone-module">
+        <summary>依存なしの実装を表示・コピー</summary>
+        <CodeBlock code={moduleSource} label="JavaScript実装全体（コンソール用）" />
+      </details>
+      <p><a href={`/objects/${concept.id}/functions.js`} download>実装をダウンロード</a></p>
+      <p>貼り付け後、以下のコードをコンソールで実行できます。関数は <code>libra.number</code> / <code>libra.bigint</code> に登録されます。</p>
       <div class="code-example-grid">
         {codeExamples.map(({ numericType, code }) => (
           <CodeBlock
-            code={code}
+            code={code.split("\n").map((line) => `libra.${line}`).join("\n")}
             label={numericType === "number" ? "Number版" : "BigInt版"}
           />
         ))}
       </div>
+      <p>ES moduleとして使う場合は、<code>functions.js</code> と <a href={`/objects/${concept.id}/functions.mjs`} download>functions.mjs</a> を同じディレクトリに保存し、<code>{`import { number, bigint } from "./functions.mjs";`}</code> で読み込めます。アダプターも <code>globalThis.libra</code> に登録します。既存パッケージを使う場合はインポート元を <code>@butchi/integer-sequences</code> に差し替えられます。</p>
     </section>
 
     <section class="page-section" aria-labelledby="implementation-heading">

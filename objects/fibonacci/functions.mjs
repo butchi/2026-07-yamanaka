@@ -1,12 +1,4 @@
-import {
-  bigint as bigintSequences,
-  number as numberSequences,
-} from "@butchi/integer-sequences";
+import "./functions.js";
 
-export const number = Object.freeze({
-  fibonacci: numberSequences.fibonacci,
-});
-
-export const bigint = Object.freeze({
-  fibonacci: bigintSequences.fibonacci,
-});
+export const number = Object.freeze({ fibonacci: globalThis.libra.number.fibonacci });
+export const bigint = Object.freeze({ fibonacci: globalThis.libra.bigint.fibonacci });

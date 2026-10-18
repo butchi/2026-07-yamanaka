@@ -101,9 +101,59 @@ test("対象関数をAPI互換のJavaScriptモジュールとして取得でき�
   expect(response.ok()).toBeTruthy();
   expect(response.headers()["content-type"]).toContain("text/javascript");
   const moduleSource = await response.text();
-  expect(moduleSource).toContain('from "@butchi/integer-sequences"');
+  expect(moduleSource).toContain('import "./functions.js"');
   expect(moduleSource).toContain("export const number");
   expect(moduleSource).toContain("export const bigint");
+});
+
+test("コピーした実装をコンソール相当の通常スクリプトとして繰り返し実行できる", async ({ context, page }) => {
+  const baseURL = test.info().project.use.baseURL as string;
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+    origin: new URL(baseURL).origin,
+  });
+  const sources: string[] = [];
+  for (const id of ["fibonacci", "prime", "square"]) {
+    await page.goto(`/numbers/${id}/`);
+    const implementation = page.getByTestId("standalone-module");
+    await implementation.locator("summary").click();
+    await implementation.getByRole("button", { name: "コードをコピー", exact: true }).click();
+    const response = await page.request.get(`/objects/${id}/functions.js`);
+    expect(response.ok()).toBeTruthy();
+    const source = await response.text();
+    expect(source).not.toMatch(/\bimport\b|\bexport\b|\brequire\b/);
+    sources.push(source);
+    await expect.poll(
+      () => page.evaluate(() => navigator.clipboard.readText()),
+    ).toBe(source);
+    const values = await page.evaluate(async (objectId) =>
+      (0, eval)(`${await navigator.clipboard.readText()}\nlibra.number.${objectId}.take(16).map(String);`),
+    id);
+    const digest = await page.request.get(`/objects/${id}/data/digest.json`);
+    expect(values).toEqual((await digest.json()).terms);
+  }
+  const results = await page.evaluate((scripts) => {
+    for (let round = 0; round < 2; round += 1) {
+      for (const source of scripts) (0, eval)(source);
+    }
+    return (0, eval)("[libra.number.fibonacci.term(10), libra.number.prime.has(97), libra.bigint.square.term(10).toString()]");
+  }, sources);
+  expect(results).toEqual([55, true, "100"]);
+});
+
+test("配信されたES moduleアダプターからも同じ関数を呼び出せる", async ({ page }) => {
+  await page.goto(fibonacciPath);
+  const results = await page.evaluate(async () => {
+    const load = (id: string) => import(/* @vite-ignore */ `/objects/${id}/functions.mjs`);
+    const fibonacci = await load("fibonacci");
+    const prime = await load("prime");
+    const square = await load("square");
+    return [
+      fibonacci.number.fibonacci.term(10),
+      prime.number.prime.has(97),
+      square.bigint.square.term(10).toString(),
+    ];
+  });
+  expect(results).toEqual([55, true, "100"]);
 });
 
 test("Markdownの本文・GFM表・MathML・コード例を表示できる", async ({ page }) => {

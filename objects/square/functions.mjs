@@ -1,12 +1,4 @@
-import {
-  bigint as bigintSequences,
-  number as numberSequences,
-} from "@butchi/integer-sequences";
+import "./functions.js";
 
-export const number = Object.freeze({
-  square: numberSequences.square,
-});
-
-export const bigint = Object.freeze({
-  square: bigintSequences.square,
-});
+export const number = Object.freeze({ square: globalThis.libra.number.square });
+export const bigint = Object.freeze({ square: globalThis.libra.bigint.square });
