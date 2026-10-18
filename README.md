@@ -20,6 +20,12 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 ## コンテンツの編集
 
+### GitHubでの編集・プルリクエスト
+
+現在の暫定的な投稿先は [`develop` ブランチ](https://github.com/butchi/2026-07-yamanaka/tree/develop) です。Forkの `develop` から作業ブランチを作成し、変更をコミット・pushしてください。[PR作成画面](https://github.com/butchi/2026-07-yamanaka/compare/develop...develop?expand=1) では、必要に応じて「compare across forks」で自分のForkと作業ブランチを選び、base repositoryが `butchi/2026-07-yamanaka`、baseが `develop` であることを確認して、変更理由・出典・確認した内容を記載します。GitHubアカウントが必要で、直接の書き込み権限がなくてもForkから提案できます。
+
+サイト共通の「編集・PRを送る」から投稿手順へ進めます。各項目の「この項目を編集・提案する」には、その項目の説明・実装のGitHub編集画面、データディレクトリ、ソース、PR作成画面へのリンクがあります。リンク先のリポジトリと投稿先ブランチは [`src/lib/github.ts`](./src/lib/github.ts) に集約しています。
+
 ドキュメントと構造化データは、TypeScriptのオブジェクトリテラルではなく標準的なファイルとして管理します。
 
 - [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`overview.md` に定義、注記、表、コード例などのGFM本文を記述します。HTML、MathML、SVGも本文に直接記述できます。

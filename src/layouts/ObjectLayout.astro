@@ -6,6 +6,7 @@ import OperationAvailability from "@/components/concept/OperationAvailability.as
 import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
 import ConceptCalculator from "@/components/interactive/ConceptCalculator.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { github } from "@/lib/github";
 import {
   type ConceptRegistryEntry,
   type UiOperation,
@@ -21,6 +22,7 @@ interface Props {
 
 const { concept, object, document, digest, relatedConcepts } = Astro.props;
 const { meta } = concept;
+const objectPath = `objects/${concept.id}`;
 const content = object.data;
 const { Content } = await render(document);
 const moduleSources = import.meta.glob<string>("../../objects/*/functions.js", {
@@ -103,6 +105,18 @@ const includesZero = digest.data.terms.includes("0");
         <span>公開API: 0始まり</span>
         <span>{includesZero ? "0を含む" : "0を含まない"}</span>
       </div>
+      <aside class="notice" aria-label="この項目への貢献">
+        <strong>この項目を編集・提案する</strong>
+        <p>誤りの修正や補足をGitHubで提案できます。現在のPRのマージ先は <code>{github.contributionBranch}</code> です。</p>
+        <nav class="hero-actions" aria-label="この項目をGitHubで編集">
+          <a href={`${github.editUrl}/${objectPath}/overview.md`}>説明を編集</a>
+          <a href={`${github.editUrl}/${objectPath}/functions.js`}>実装を編集</a>
+          <a href={`${github.treeUrl}/${objectPath}/data`}>データを編集</a>
+          <a href={`${github.treeUrl}/${objectPath}`}>項目のソース</a>
+          <a href={github.compareUrl}>PRを作成する（GitHub）</a>
+          <a href="/about/#contribution-heading">投稿手順</a>
+        </nav>
+      </aside>
     </header>
 
     <section class="page-section sequence-first" aria-labelledby="first-terms-heading">

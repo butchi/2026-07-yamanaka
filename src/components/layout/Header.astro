@@ -2,10 +2,11 @@
 const navigation = [
   { href: "/numbers/", label: "カタログ" },
   { href: "/about/", label: "プロジェクト" },
+  { href: "/about/#contribution-heading", label: "編集・PRを送る" },
 ] as const;
 
 const currentPath = Astro.url.pathname;
-const isCurrent = (href: string) => currentPath.startsWith(href);
+const isCurrent = (href: string) => !href.includes("#") && currentPath.startsWith(href);
 ---
 
 <a class="skip-link" href="#main-content">本文へ移動</a>

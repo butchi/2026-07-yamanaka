@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { github } from "@/lib/github";
 ---
 
 <BaseLayout
@@ -59,11 +60,27 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
         投稿とレビューには基本的にGitHubを使い、提案、差分、根拠、議論を追跡できる形にする方針です。
         自動投稿やユーザーアカウントに依存せず、項目の定義とデータを変更履歴とともに検証できる運用を目指します。
       </p>
+      <p>
+        現在の暫定的な投稿先は <code>butchi/2026-07-yamanaka</code> の
+        <strong><code>{github.contributionBranch}</code> ブランチ</strong>です。
+        プルリクエストのマージ先（base）は <code>{github.contributionBranch}</code> を選んでください。
+      </p>
+      <ol>
+        <li>GitHubにログインし、下のリンクから投稿先のブランチを開いてリポジトリをForkします。</li>
+        <li>Forkの <code>{github.contributionBranch}</code> から作業ブランチを作成し、変更をコミット・pushします。各項目の「この項目を編集・提案する」からGitHub上でファイルを編集することもできます。</li>
+        <li>「PRを作成する」を開き、必要に応じて「compare across forks」で自分のForkと作業ブランチを選びます。base repositoryが <code>butchi/2026-07-yamanaka</code>、baseが <code>{github.contributionBranch}</code> であることを確認します。</li>
+        <li>差分を確認し、変更理由・出典・確認した内容を添えてプルリクエストを送信します。</li>
+      </ol>
+      <nav class="hero-actions" aria-label="GitHubへの投稿">
+        <a class="primary-link" href={github.compareUrl}>PRを作成する（GitHub）</a>
+        <a href={github.treeUrl}>投稿先のdevelopブランチを見る</a>
+      </nav>
     </div>
     <div class="notice">
       <strong>現在の段階：</strong>
       このサイトは再構築の初期段階で、公開項目はフィボナッチ数・素数・平方数です。
-      一般投稿のGitHubフローや、網羅的なオブジェクトスキーマは今後整備する計画です。
+      GitHubでの編集・投稿にはGitHubアカウントが必要です。直接の書き込み権限がない場合はForkから提案してください。
+      サイト内での投稿機能や、網羅的なオブジェクトスキーマは今後整備する計画です。
     </div>
   </section>
 
