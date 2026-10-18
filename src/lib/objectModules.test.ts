@@ -5,9 +5,10 @@ import {
   bigint as bigintApi,
   number as numberApi,
 } from "@butchi/integer-sequences";
-import * as fibonacciModule from "../../objects/fibonacci/functions.mjs";
-import * as primeModule from "../../objects/prime/functions.mjs";
-import * as squareModule from "../../objects/square/functions.mjs";
+import * as fibonacciModule from "../../objects/fibonacci/functions.source.js";
+import * as primeModule from "../../objects/prime/functions.source.js";
+import * as squareModule from "../../objects/square/functions.source.js";
+import { compileObjectModule } from "./objectModules";
 
 const objectMetadata = Object.entries(import.meta.glob<{ id: string; conceptId: string }>(
   "../../objects/*/object.json", { eager: true, import: "default" },
@@ -16,7 +17,7 @@ const objectMetadata = Object.entries(import.meta.glob<{ id: string; conceptId: 
 function sourceUrl(conceptId: string) {
   const object = objectMetadata.find(([, entry]) => entry.conceptId === conceptId);
   if (!object) throw new Error(`Missing object identity for ${conceptId}`);
-  return new URL(object[0].replace(/object\.json$/, "functions.js"), import.meta.url);
+  return new URL(object[0].replace(/object\.json$/, "functions.source.js"), import.meta.url);
 }
 
 describe("object function modules", () => {
@@ -25,11 +26,9 @@ describe("object function modules", () => {
     ["prime", primeModule.number.prime, numberApi.prime],
     ["square", squareModule.number.square, numberApi.square],
   ] as const) {
-    it(`${id}: runs copied source without imports or package dependencies`, async () => {
-      const source = await readFile(
-        sourceUrl(id),
-        "utf8",
-      );
+    it(`${id}: builds a pasteable script without imports or package dependencies`, async () => {
+      const input = await readFile(sourceUrl(id), "utf8");
+      const source = await compileObjectModule(input, "global");
       expect(source).not.toMatch(/\bimport\b|\bexport\b|\brequire\b/);
       const result = runInNewContext(
         `${source}\nlibra.number.${id}.take(16).join(",");`,
@@ -37,6 +36,14 @@ describe("object function modules", () => {
         { timeout: 1000 },
       );
       expect(result).toBe(api.take(16).join(","));
+    });
+
+    it(`${id}: builds a self-contained ES module`, async () => {
+      const input = await readFile(sourceUrl(id), "utf8");
+      const source = await compileObjectModule(input, "module");
+      expect(source).not.toMatch(/\bimport\b/);
+      const standalone = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+      expect(standalone.number[id].take(16)).toEqual(api.take(16));
     });
 
     it(`${id}: matches every public Number operation`, () => {
@@ -76,10 +83,8 @@ describe("object function modules", () => {
     const context = createContext(Object.create(null));
     for (let round = 0; round < 2; round += 1) {
       for (const id of ["fibonacci", "prime", "square"]) {
-        const source = await readFile(
-          sourceUrl(id),
-          "utf8",
-        );
+        const input = await readFile(sourceUrl(id), "utf8");
+        const source = await compileObjectModule(input, "global");
         runInContext(source, context, { timeout: 1000 });
       }
     }

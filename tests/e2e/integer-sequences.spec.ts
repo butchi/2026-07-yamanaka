@@ -104,7 +104,7 @@ test("対象関数をAPI互換のJavaScriptモジュールとして取得でき�
   expect(response.ok()).toBeTruthy();
   expect(response.headers()["content-type"]).toContain("text/javascript");
   const moduleSource = await response.text();
-  expect(moduleSource).toContain('import "./functions.js"');
+  expect(moduleSource).not.toMatch(/\bimport\b/);
   expect(moduleSource).toContain("export const number");
   expect(moduleSource).toContain("export const bigint");
 });
@@ -143,7 +143,7 @@ test("コピーした実装をコンソール相当の通常スクリプトと�
   expect(results).toEqual([55, true, "100"]);
 });
 
-test("配信されたES moduleアダプターからも同じ関数を呼び出せる", async ({ page }) => {
+test("配信された自己完結ES moduleからも同じ関数を呼び出せる", async ({ page }) => {
   await page.goto(fibonacciPath);
   const results = await page.evaluate(async (identities) => {
     const load = (id: string) => import(/* @vite-ignore */ `/objects/${id}/functions.mjs`);

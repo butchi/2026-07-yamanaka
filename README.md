@@ -30,7 +30,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 - [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`README.md` に定義、注記、表、コード例などのGFM本文を記述します。記事中の数式にはLaTeX記法を使います。図などには必要に応じてHTML・SVGを利用できます。
 - 各対象の `data/digest.json` は最初の16項、`data/standard.json` は最初の256項を正確な整数データとして保存します。各値はJSONの安全整数制限を避ける10進整数文字列で、添字の原点も明記します。サイトはこれらのスナップショットをそのまま表示・配信し、ビルド時の `take()` で生成しません。
-- 各対象の `functions.js` は、外部パッケージに依存せず、デベロッパーツールのコンソールにそのまま貼り付けられるJavaScript実装です。`import` / `export` は含みません。関数は `globalThis.libra.number.<object>` / `globalThis.libra.bigint.<object>` に登録し、補助関数は即時実行関数内に閉じ込めます。同じ実装の再貼り付けや、複数対象の併用も可能です。関数名・引数・戻り値は公開ライブラリと共通ですが、ライブラリ固有の操作メタデータや例外クラスは含まず、不正入力やNumberの安全整数範囲外の結果は標準の `TypeError` / `RangeError` で通知します。`functions.mjs` はこの実装を読み込むES module用の薄いアダプターです。
+- 各対象の `functions.source.js` が投稿者向けの唯一の実装ソースです。ES moduleとして `number` と `bigint` をエクスポートし、公開ライブラリと共通の関数名・引数・戻り値で実装します。外部パッケージやサイト固有の登録処理は不要です。ビルド時に、デベロッパーツールへ貼り付けられ `globalThis.libra.number.<object>` / `globalThis.libra.bigint.<object>` に登録する `functions.js` と、単体でインポートできる `functions.mjs` を生成します。生成物はリポジトリにコミットしません。グローバル版は複数対象への併用と同じ実装の再貼り付けが可能で、補助関数は外部に公開されません。ライブラリ固有の操作メタデータや例外クラスは含まず、不正入力やNumberの安全整数範囲外の結果は標準の `TypeError` / `RangeError` で通知します。
 - [`src/content.config.ts`](./src/content.config.ts) — Astro Content Layerの読み込み先と検証スキーマ。
 - [`src/layouts/ObjectLayout.astro`](./src/layouts/ObjectLayout.astro) — MarkdownとJSONを計算・表示機能に接続する共通レイアウト。
 
@@ -53,7 +53,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 | 永続参照URL | `/id/<UUID>/`。現在の公開ページへ転送 |
 | 計算APIとの接続 | `object.json` の `conceptId`。例：`fibonacci`。UUIDやslugとは独立 |
 
-[`objects/registry.json`](./objects/registry.json) はUUIDとslug履歴の台帳です。新規項目には一度だけUUIDv7を生成し、その後は名前やslug、保存フォルダを変更してもUUID・UUID参照を変えません。保存フォルダは通常slugに合わせた読みやすい名前にしますが、公開slugとの一致は必須ではありません。フォルダ名は英小文字・数字・単語間のハイフンで記述します。新規の計算対象にはライブラリとアダプターの追加も必要です。UUIDv7の時刻情報は端末間の厳密な登録順を保証せず、登録日時・公開日時の代わりにはしません。
+[`objects/registry.json`](./objects/registry.json) はUUIDとslug履歴の台帳です。新規項目には一度だけUUIDv7を生成し、その後は名前やslug、保存フォルダを変更してもUUID・UUID参照を変えません。保存フォルダは通常slugに合わせた読みやすい名前にしますが、公開slugとの一致は必須ではありません。フォルダ名は英小文字・数字・単語間のハイフンで記述します。新規の計算対象にはライブラリと独立実装ソースの追加も必要です。UUIDv7の時刻情報は端末間の厳密な登録順を保証せず、登録日時・公開日時の代わりにはしません。
 
 ビルド時に各フォルダの `object.json` を読み込み、UUIDから保存先を引く索引を作ります。同じフォルダのREADME・データ・実装をまとめて移動すれば、設定に保存先を二重登録する必要はありません。GitHub編集リンクも実際の保存先から生成します。フォルダの改名後もUUIDによる参照・配信URLは維持されますが、GitHub上の旧ファイルURLは保証できません。外部からの引用には独自ドメイン側の `/id/<UUID>/` を使用してください。
 
@@ -86,7 +86,7 @@ $$
 
 新しい種類の計算を追加する場合は、別途ライブラリの実装と `src/lib/conceptRegistry.ts` の接続が必要です。データスナップショットはAPIの実行結果からビルドごとに生成せず、対象ディレクトリに保存したレビュー可能なJSONを正とします。Expression JSONやMathJSONの専用評価器は現時点では実装していません。
 
-保存データは `/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/data/digest.json`、`/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/data/standard.json` として、JavaScript実装とES moduleアダプターは `/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/functions.js`、`/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/functions.mjs` としてサイトからも取得できます。
+保存データは `/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/data/digest.json`、`/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/data/standard.json` として、ビルドで生成するJavaScript実装とES moduleは `/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/functions.js`、`/objects/01a15005-fe79-7ac4-bfaf-8b8e82577063/functions.mjs` としてサイトからも取得できます。
 
 ### コピーした実装の使い方
 
@@ -97,7 +97,7 @@ libra.number.fibonacci.take(16);
 libra.bigint.fibonacci.term(100); // 354224848179261915075n
 ```
 
-ES moduleとして利用する場合は、`functions.js` と `functions.mjs` を同じディレクトリに保存します。アダプターも `globalThis.libra` に関数を登録します。
+ES moduleとして利用する場合は、自己完結した `functions.mjs` だけを保存して利用できます。関数は名前付きエクスポートとして提供され、`globalThis.libra` は変更しません。
 
 ```js
 import { number, bigint } from "./functions.mjs";
@@ -109,7 +109,7 @@ bigint.fibonacci.term(100);
 
 ## データ・関数と整数列ライブラリ
 
-ブラウザーの計算UIと操作メタデータには引き続き [`@butchi/integer-sequences`](https://www.npmjs.com/package/@butchi/integer-sequences) を使います。コピーして再利用するための独立実装は各対象の `functions.js` で管理し、ライブラリの実装情報とは区別します。
+ブラウザーの計算UIと操作メタデータには引き続き [`@butchi/integer-sequences`](https://www.npmjs.com/package/@butchi/integer-sequences) を使います。コピーして再利用するための独立実装は各対象の `functions.source.js` で管理し、ライブラリの実装情報とは区別します。投稿者はこのES moduleソースだけを編集し、配信用ファイルへの変換はビルドが行います。
 
 ```text
 @butchi/integer-sequences  →  Libra
@@ -122,8 +122,7 @@ NumberとBigIntの明示的な選択、入力境界の検証、JSON・CSV・Java
 objects/fibonacci/
 ├─ object.json
 ├─ README.md
-├─ functions.js
-├─ functions.mjs
+├─ functions.source.js
 └─ data/
    ├─ digest.json       # 最初の16項
    └─ standard.json     # 最初の256項
@@ -174,22 +173,19 @@ objects/
 ├─ fibonacci/            フィボナッチ数
 │  ├─ object.json         項目ID・SEO・関連項目
 │  ├─ README.md           項目の概要・定義・利用例（GFM・LaTeX数式）
-│  ├─ functions.js        コンソールへ貼り付けられる独立実装
-│  ├─ functions.mjs       API互換のES moduleアダプター
+│  ├─ functions.source.js 投稿者が編集する実装ソース
 │  └─ data/
 │     ├─ digest.json      最初の16項（正確な整数文字列）
 │     └─ standard.json    最初の256項（正確な整数文字列）
 ├─ prime/                素数
 │  ├─ object.json
 │  ├─ README.md
-│  ├─ functions.js
-│  ├─ functions.mjs
+│  ├─ functions.source.js
 │  └─ data/
 └─ square/               平方数
    ├─ object.json
    ├─ README.md
-   ├─ functions.js
-   ├─ functions.mjs
+   ├─ functions.source.js
    └─ data/
 src/
 ├─ content.config.ts     コンテンツの読み込み・スキーマ検証

@@ -30,7 +30,7 @@ for (const { slug } of objectIdentities) {
     const navigation = page.getByRole("navigation", { name: "この項目をGitHubで編集", exact: true });
     const links = [
       ["項目のREADMEを編集", `${repositoryUrl}/edit/develop/objects/${slug}/README.md`],
-      ["実装を編集", `${repositoryUrl}/edit/develop/objects/${slug}/functions.js`],
+      ["実装を編集", `${repositoryUrl}/edit/develop/objects/${slug}/functions.source.js`],
       ["データを編集", `${repositoryUrl}/tree/develop/objects/${slug}/data`],
       ["項目のソース", `${repositoryUrl}/tree/develop/objects/${slug}`],
       ["PRを作成する（GitHub）", compareUrl],
