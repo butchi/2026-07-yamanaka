@@ -329,6 +329,12 @@ a:hover {
   color: var(--color-text-muted);
 }
 
+.sequence-strip__term {
+  display: flex;
+  align-items: baseline;
+  gap: 0.15rem;
+}
+
 .sequence-strip code {
   padding: 0;
   background: transparent;

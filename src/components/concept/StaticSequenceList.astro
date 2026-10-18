@@ -15,7 +15,9 @@ const formatted = values.map((value) =>
     {formatted.map((value, index) => (
       <li aria-label={`添字 ${index}: ${value}`}>
         <span class="sequence-strip__index" data-index={index} aria-hidden="true"></span>
-        <code>{value}</code>{index < formatted.length - 1 && <span class="sequence-strip__separator" aria-hidden="true">, </span>}
+        <span class="sequence-strip__term">
+          <code>{value}</code>{index < formatted.length - 1 && <span class="sequence-strip__separator" aria-hidden="true">,</span>}
+        </span>
       </li>
     ))}
   </ol>
