@@ -15,16 +15,16 @@ import {
 interface Props {
   concept: ConceptRegistryEntry;
   object: CollectionEntry<"objects">;
-  document: CollectionEntry<"documents">;
+  readme: CollectionEntry<"objectReadmes">;
   digest: CollectionEntry<"datasets">;
   relatedConcepts: readonly ConceptRegistryEntry[];
 }
 
-const { concept, object, document, digest, relatedConcepts } = Astro.props;
+const { concept, object, readme, digest, relatedConcepts } = Astro.props;
 const { meta } = concept;
 const objectPath = `objects/${concept.id}`;
 const content = object.data;
-const { Content } = await render(document);
+const { Content } = await render(readme);
 const moduleSources = import.meta.glob<string>("../../objects/*/functions.js", {
   query: "?raw",
   import: "default",
@@ -109,7 +109,7 @@ const includesZero = digest.data.terms.includes("0");
         <strong>この項目を編集・提案する</strong>
         <p>誤りの修正や補足をGitHubで提案できます。現在のPRのマージ先は <code>{github.contributionBranch}</code> です。</p>
         <nav class="hero-actions" aria-label="この項目をGitHubで編集">
-          <a href={`${github.editUrl}/${objectPath}/overview.md`}>説明を編集</a>
+          <a href={`${github.editUrl}/${objectPath}/README.md`}>項目のREADMEを編集</a>
           <a href={`${github.editUrl}/${objectPath}/functions.js`}>実装を編集</a>
           <a href={`${github.treeUrl}/${objectPath}/data`}>データを編集</a>
           <a href={`${github.treeUrl}/${objectPath}`}>項目のソース</a>

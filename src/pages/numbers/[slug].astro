@@ -4,13 +4,13 @@ import ObjectLayout from "@/layouts/ObjectLayout.astro";
 import { resolveObjectEntries } from "@/lib/objectEntries";
 
 export async function getStaticPaths() {
-  const [objects, documents, datasets] = await Promise.all([
+  const [objects, readmes, datasets] = await Promise.all([
     getCollection("objects"),
-    getCollection("documents"),
+    getCollection("objectReadmes"),
     getCollection("datasets"),
   ]);
 
-  return resolveObjectEntries(objects, documents, datasets).map((entry) => ({
+  return resolveObjectEntries(objects, readmes, datasets).map((entry) => ({
     params: { slug: entry.concept.id },
     props: entry,
   }));

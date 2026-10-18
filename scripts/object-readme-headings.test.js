@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { satteri } from "@astrojs/markdown-satteri";
-import objectDocumentHeadings from "./object-document-headings.mjs";
+import objectReadmeHeadings from "./object-readme-headings.mjs";
 
 const renderer = await satteri({
-  mdastPlugins: [objectDocumentHeadings()],
+  mdastPlugins: [objectReadmeHeadings()],
 }).createRenderer({ syntaxHighlight: false });
-const file = { fileURL: new URL("file:///project/objects/fibonacci/overview.md") };
+const file = { fileURL: new URL("file:///project/objects/fibonacci/README.md") };
 
-describe("object document headings", () => {
+describe("object README headings", () => {
   it("omits the title and nests sections under the layout heading", async () => {
     const result = await renderer.render("# Title\n\nText\n\n## Notes\n\n### Example\n", file);
     expect(result.code).not.toContain("<h1");

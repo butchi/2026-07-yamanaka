@@ -28,20 +28,34 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 ドキュメントと構造化データは、TypeScriptのオブジェクトリテラルではなく標準的なファイルとして管理します。
 
-- [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`overview.md` に定義、注記、表、コード例などのGFM本文を記述します。HTML、MathML、SVGも本文に直接記述できます。
+- [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`README.md` に定義、注記、表、コード例などのGFM本文を記述します。記事中の数式にはLaTeX記法を使います。図などには必要に応じてHTML・SVGを利用できます。
 - 各対象の `data/digest.json` は最初の16項、`data/standard.json` は最初の256項を正確な整数データとして保存します。各値はJSONの安全整数制限を避ける10進整数文字列で、添字の原点も明記します。サイトはこれらのスナップショットをそのまま表示・配信し、ビルド時の `take()` で生成しません。
 - 各対象の `functions.js` は、外部パッケージに依存せず、デベロッパーツールのコンソールにそのまま貼り付けられるJavaScript実装です。`import` / `export` は含みません。関数は `globalThis.libra.number.<object>` / `globalThis.libra.bigint.<object>` に登録し、補助関数は即時実行関数内に閉じ込めます。同じ実装の再貼り付けや、複数対象の併用も可能です。関数名・引数・戻り値は公開ライブラリと共通ですが、ライブラリ固有の操作メタデータや例外クラスは含まず、不正入力やNumberの安全整数範囲外の結果は標準の `TypeError` / `RangeError` で通知します。`functions.mjs` はこの実装を読み込むES module用の薄いアダプターです。
 - [`src/content.config.ts`](./src/content.config.ts) — Astro Content Layerの読み込み先と検証スキーマ。
 - [`src/layouts/ObjectLayout.astro`](./src/layouts/ObjectLayout.astro) — MarkdownとJSONを計算・表示機能に接続する共通レイアウト。
 
-例えば、フィボナッチ数の説明は [`objects/fibonacci/overview.md`](./objects/fibonacci/overview.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownの空のフロントマターは追加メタデータを持たせないためのもので、SEOなどはJSONに集約しています。
+各項目の `README.md` は、そのディレクトリにある対象の概要・定義・注意点・利用例を説明するREADMEです。GitHubでもディレクトリを開くと本文を読めます。独立した文書として登録するのではなく、`object.json` やデータ・実装と組になる項目の構成要素として扱い、サイトでも同じ本文を表示します。読み込み先も汎用の文書コレクションではなく `objectReadmes` として区別します。
 
-同じディレクトリ内の `object.json` と `overview.md` を必ず組にし、ディレクトリ名を項目IDとします。データセットは正確に16項・256項であること、十進整数文字列の形式、オブジェクトID、添字原点、およびダイジェストが標準データの先頭と一致することを検証します。読み込み対象は `object.json`、`overview.md`、`data/digest.json`、`data/standard.json` に限定するため、対象固有の補助データや補足文書を追加しても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
+例えば、フィボナッチ数の説明は [`objects/fibonacci/README.md`](./objects/fibonacci/README.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownの空のフロントマターは追加メタデータを持たせないためのもので、SEOなどはJSONに集約しています。
+
+同じディレクトリ内の `object.json` と `README.md` を必ず組にし、ディレクトリ名を項目IDとします。データセットは正確に16項・256項であること、十進整数文字列の形式、オブジェクトID、添字原点、およびダイジェストが標準データの先頭と一致することを検証します。読み込み対象は `object.json`、`README.md`、`data/digest.json`、`data/standard.json` に限定するため、対象固有の補助データや補足文書を追加しても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
+
+### 記事中の数式
+
+数式はMathMLを直接書かず、インライン数式は `$n^2$`、独立した数式は次のように `$$` で囲んだLaTeXで記述します。
+
+```text
+$$
+F_0 = 0,\quad F_1 = 1,\quad F_n = F_{n-1} + F_{n-2}\quad (n \ge 2)
+$$
+```
+
+[`scripts/latex-math.mjs`](./scripts/latex-math.mjs) がビルド時にKaTeXで描画するため、ブラウザーのJavaScriptや外部CDNは不要です。表示用HTMLとアクセシビリティ用MathMLは自動生成されます。不正なLaTeXや非対応のコマンドはビルドエラーとして通知します。コードブロックやインラインコード内の数式記法は変換しません。
 
 ### 配置の原則：一緒に編集するものを近くに置く
 
 - 対象固有の概要・データ・実装は `objects/<id>/` に集めます。必要に応じて `data/` や `implementations/` を追加します。
-- 複数の対象で共有する関数はルートの `functions/<function-id>/`、横断的な解説は `documents/<document-id>.md` に独立して配置する方針です。共有資源の導入時にこれらのディレクトリを作成します。
+- 複数の対象で共有する関数はルートの `functions/<function-id>/`、横断的な解説は `documents/<document-id>.md` に独立して配置する方針です。項目固有のREADMEとは区別し、共有資源の導入時にこれらのディレクトリを作成します。
 - 関係は包含関係から推測せず、メタデータのID参照で表します。現在の関連項目は `relatedConceptIds` で参照しており、保存場所とは独立しています。
 - 共有関数を導入する際は、関数IDと適用パラメータ、共有文書は文書IDを項目のメタデータに記録し、参照先の検証と表示先の選択を実装します。共有資源を更新した場合に、参照する対象をCIで検証できる構成を目指します。
 
@@ -84,7 +98,7 @@ NumberとBigIntの明示的な選択、入力境界の検証、JSON・CSV・Java
 ```text
 objects/fibonacci/
 ├─ object.json
-├─ overview.md
+├─ README.md
 ├─ functions.js
 ├─ functions.mjs
 └─ data/
@@ -112,7 +126,7 @@ pnpm dev
 
 ## ビルドとテスト
 
-Markdownは `pnpm lint:md` で検証します。[`.markdownlint.jsonc`](./.markdownlint.jsonc) では日本語文章を意味のまとまりで記述するため行長制限（MD013）を除外しています。すべてのMarkdownは先頭にH1を必須とし、項目本文も `# 項目名` から始め、節はH2、小節はH3で記述します。サイト生成時には [`scripts/object-document-headings.mjs`](./scripts/object-document-headings.mjs) が項目本文のH1を取り除き、残りの見出しを1段下げるため、レイアウト側のページタイトルや「ドキュメント — 定義と性質」と重複しません。H1必須はlintで検証し、項目本文の見出しがH1以外から始まる場合やH1が複数ある場合はビルド時にもエラーにします。数式用MathMLは該当ブロックだけMD033を除外し、それ以外のルールは有効に保ちます。
+Markdownは `pnpm lint:md` で検証します。[`.markdownlint.jsonc`](./.markdownlint.jsonc) では日本語文章を意味のまとまりで記述するため行長制限（MD013）を除外しています。すべてのMarkdownは先頭にH1を必須とし、項目のREADMEも `# 項目名` から始め、節はH2、小節はH3で記述します。サイト生成時には [`scripts/object-readme-headings.mjs`](./scripts/object-readme-headings.mjs) が項目のREADMEのH1を取り除き、残りの見出しを1段下げるため、レイアウト側のページタイトルや「ドキュメント — 定義と性質」と重複しません。H1必須はlintで検証し、項目のREADMEの見出しがH1以外から始まる場合やH1が複数ある場合はビルド時にもエラーにします。HTML・SVGの直接記述が必要な場合だけ、理由を添えて該当ブロックのMD033を除外し、それ以外のルールは有効に保ちます。LaTeX数式にMD033の除外は不要です。
 
 ```sh
 # Markdownの検証
@@ -135,7 +149,7 @@ pnpm test:e2e
 objects/
 ├─ fibonacci/
 │  ├─ object.json         項目ID・SEO・関連項目
-│  ├─ overview.md         解説本文（GFM・HTML・MathML・SVG）
+│  ├─ README.md           項目の概要・定義・利用例（GFM・LaTeX数式）
 │  ├─ functions.js        コンソールへ貼り付けられる独立実装
 │  ├─ functions.mjs       API互換のES moduleアダプター
 │  └─ data/
@@ -143,13 +157,13 @@ objects/
 │     └─ standard.json    最初の256項（正確な整数文字列）
 ├─ prime/
 │  ├─ object.json
-│  ├─ overview.md
+│  ├─ README.md
 │  ├─ functions.js
 │  ├─ functions.mjs
 │  └─ data/
 └─ square/
    ├─ object.json
-   ├─ overview.md
+   ├─ README.md
    ├─ functions.js
    ├─ functions.mjs
    └─ data/

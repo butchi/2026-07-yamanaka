@@ -1,8 +1,8 @@
-export default function objectDocumentHeadings() {
+export default function objectReadmeHeadings() {
   return {
-    name: "object-document-headings",
+    name: "object-readme-headings",
     heading(heading, context) {
-      if (!/(?:^|\/)objects\/[^/]+\/overview\.md$/.test(context.fileURL?.pathname ?? "")) {
+      if (!/(?:^|\/)objects\/[^/]+\/README\.md$/.test(context.fileURL?.pathname ?? "")) {
         return;
       }
 
@@ -11,7 +11,7 @@ export default function objectDocumentHeadings() {
       const headings = parent.children.filter((node) => node.type === "heading");
       const title = headings[0];
       if (title?.depth !== 1 || headings.filter((node) => node.depth === 1).length !== 1) {
-        throw new Error(`${context.fileURL}: Object documents must contain exactly one H1 as their first heading.`);
+        throw new Error(`${context.fileURL}: Object READMEs must contain exactly one H1 as their first heading.`);
       }
 
       // ObjectLayout supplies the title and the enclosing documentation heading.

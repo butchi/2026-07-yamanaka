@@ -4,12 +4,12 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import { resolveObjectEntries } from "@/lib/objectEntries";
 
-const [objects, documents, datasets] = await Promise.all([
+const [objects, readmes, datasets] = await Promise.all([
   getCollection("objects"),
-  getCollection("documents"),
+  getCollection("objectReadmes"),
   getCollection("datasets"),
 ]);
-const concepts = resolveObjectEntries(objects, documents, datasets);
+const concepts = resolveObjectEntries(objects, readmes, datasets);
 ---
 
 <BaseLayout

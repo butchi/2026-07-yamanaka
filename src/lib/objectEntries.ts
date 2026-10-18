@@ -5,7 +5,7 @@ export function resolveObjectEntries<
     id: string;
     data: { conceptId: string; relatedConceptIds: readonly string[] };
   },
-  DocumentEntry extends { id: string; body?: string },
+  ReadmeEntry extends { id: string; body?: string },
   DatasetEntry extends {
     id: string;
     data: {
@@ -18,15 +18,15 @@ export function resolveObjectEntries<
   },
 >(
   dataEntries: readonly DataEntry[],
-  documents: readonly DocumentEntry[],
+  readmes: readonly ReadmeEntry[],
   datasets: readonly DatasetEntry[],
 ) {
   const dataById = new Map(dataEntries.map((entry) => [entry.id, entry]));
-  const documentsById = new Map(documents.map((entry) => [entry.id, entry]));
+  const readmesById = new Map(readmes.map((entry) => [entry.id, entry]));
   const datasetsById = new Map(datasets.map((entry) => [entry.id, entry]));
   const publishedIds = new Set<string>(publishedConcepts);
 
-  for (const entries of [dataEntries, documents]) {
+  for (const entries of [dataEntries, readmes]) {
     const seen = new Set<string>();
     for (const entry of entries) {
       if (!publishedIds.has(entry.id)) {
@@ -69,14 +69,14 @@ export function resolveObjectEntries<
 
   return publishedConcepts.map((id) => {
     const object = dataById.get(id);
-    const document = documentsById.get(id);
+    const readme = readmesById.get(id);
     const digest = datasetsById.get(`${id}/data/digest`);
     const standard = datasetsById.get(`${id}/data/standard`);
     if (!object) {
       throw new Error(`Object "${id}" requires objects/${id}/object.json.`);
     }
-    if (!document?.body?.trim()) {
-      throw new Error(`Object "${id}" requires non-empty objects/${id}/overview.md.`);
+    if (!readme?.body?.trim()) {
+      throw new Error(`Object "${id}" requires non-empty objects/${id}/README.md.`);
     }
     if (!digest || !standard) {
       throw new Error(`Object "${id}" requires objects/${id}/data/digest.json and standard.json.`);
@@ -101,7 +101,7 @@ export function resolveObjectEntries<
     return {
       concept: conceptRegistry[id],
       object,
-      document,
+      readme,
       digest,
       standard,
       relatedConcepts,

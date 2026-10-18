@@ -2,9 +2,9 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
-const documents = defineCollection({
+const objectReadmes = defineCollection({
   loader: glob({
-    pattern: "*/overview.md",
+    pattern: "*/README.md",
     base: "./objects",
     generateId: ({ entry }) => entry.split("/")[0],
   }),
@@ -55,4 +55,4 @@ const datasets = defineCollection({
   }),
 });
 
-export const collections = { documents, objects, datasets };
+export const collections = { objectReadmes, objects, datasets };

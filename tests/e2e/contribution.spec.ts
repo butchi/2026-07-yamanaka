@@ -28,7 +28,7 @@ for (const id of ["fibonacci", "prime", "square"]) {
     await page.goto(`/numbers/${id}/`);
     const navigation = page.getByRole("navigation", { name: "この項目をGitHubで編集", exact: true });
     const links = [
-      ["説明を編集", `${repositoryUrl}/edit/develop/objects/${id}/overview.md`],
+      ["項目のREADMEを編集", `${repositoryUrl}/edit/develop/objects/${id}/README.md`],
       ["実装を編集", `${repositoryUrl}/edit/develop/objects/${id}/functions.js`],
       ["データを編集", `${repositoryUrl}/tree/develop/objects/${id}/data`],
       ["項目のソース", `${repositoryUrl}/tree/develop/objects/${id}`],

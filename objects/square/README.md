@@ -3,7 +3,7 @@
 
 # 平方数
 
-非負整数nを自分自身に掛けたn²の形で表せる整数です。0²を含むため0も平方数です。
+非負整数 $n$ を自分自身に掛けた $n^2$ の形で表せる整数です。$0^2$ を含むため0も平方数です。
 
 ## 注記
 
@@ -39,7 +39,7 @@ const squaresBeforePrimes = number.square
 
 ### ピタゴラス数の組を探す
 
-2辺a、bの二乗和が平方数になる組を探し、整数の斜辺cを求めます。
+2辺 $a$、$b$ の二乗和 $a^2 + b^2$ が平方数になる組を探し、整数の斜辺 $c$ を求めます。
 
 ```javascript
 import { number, range } from "@butchi/integer-sequences";

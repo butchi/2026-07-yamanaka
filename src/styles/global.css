@@ -363,7 +363,7 @@ a:hover {
   min-width: 0;
 }
 
-.object-document > math {
+.object-document .katex-display {
   max-width: 100%;
   padding-block: 0.75rem;
   overflow-x: auto;
