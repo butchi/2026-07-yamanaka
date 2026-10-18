@@ -1,20 +1,19 @@
 ---
 ---
 
-<!-- The page title and enclosing section headings are supplied by ObjectLayout. -->
-<!-- markdownlint-configure-file { "MD041": false } -->
+# 平方数
 
 非負整数nを自分自身に掛けたn²の形で表せる整数です。0²を含むため0も平方数です。
 
-### 注記
+## 注記
 
 - 平方数は0、1、4、9のように小さい順へ厳密に増加します。
 - `has(value)` は整数の平方として表せるかを判定し、平方根の近似値だけを結果として返す操作ではありません。
 - `next(value)` はvalueより厳密に大きい最小の平方数を返します。value自身が平方数でも同じ値は返しません。
 
-### 他の数との組み合わせ
+## 他の数との組み合わせ
 
-#### 平方数でもあるフィボナッチ数を探す
+### 平方数でもあるフィボナッチ数を探す
 
 BigInt版のフィボナッチ数を生成し、平方数の所属判定で絞り込みます。
 
@@ -26,7 +25,7 @@ const fibonacciSquares = range(100)
   .filter(bigint.square.has);
 ```
 
-#### 1を足すと素数になる平方数を探す
+### 1を足すと素数になる平方数を探す
 
 最初の100個の平方数から、1を足した値が素数になるものを抽出します。
 
@@ -38,7 +37,7 @@ const squaresBeforePrimes = number.square
   .filter((square) => number.prime.has(square + 1));
 ```
 
-#### ピタゴラス数の組を探す
+### ピタゴラス数の組を探す
 
 2辺a、bの二乗和が平方数になる組を探し、整数の斜辺cを求めます。
 

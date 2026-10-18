@@ -1,4 +1,7 @@
 {
   // Japanese prose is kept on semantic lines rather than wrapped at 80 characters.
-  "MD013": false
+  "MD013": false,
+  "MD041": {
+    "level": 1
+  }
 }
