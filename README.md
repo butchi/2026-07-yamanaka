@@ -18,6 +18,29 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 詳細ページのデータと説明はJavaScriptなしでも読めます。ブラウザ上の生成・判定UIは、実際の整数列ライブラリを使って動作します。現行の `/numbers/` URLは初期コンテンツの互換性のため維持しています。
 
+## コンテンツの編集
+
+ドキュメントと構造化データは、TypeScriptのオブジェクトリテラルではなく標準的なファイルとして管理します。
+
+- [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`overview.md` に定義、注記、表、コード例などのGFM本文を記述します。HTML、MathML、SVGも本文に直接記述できます。
+- [`src/content.config.ts`](./src/content.config.ts) — Astro Content Layerの読み込み先と検証スキーマ。
+- [`src/layouts/ObjectLayout.astro`](./src/layouts/ObjectLayout.astro) — MarkdownとJSONを計算・表示機能に接続する共通レイアウト。
+
+例えば、フィボナッチ数の説明は [`objects/fibonacci/overview.md`](./objects/fibonacci/overview.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownの空のフロントマターは追加メタデータを持たせないためのもので、SEOなどはJSONに集約しています。
+
+同じディレクトリ内の `object.json` と `overview.md` を必ず組にし、ディレクトリ名を項目IDとします。JSONはビルド時にスキーマで検証し、IDの不一致、本文の欠落、未登録・自己参照・重複した関連項目もエラーにします。読み込み対象はこの二つのファイル名に限定するため、対象固有の `data/first-100.json` や補足文書を置いても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
+
+### 配置の原則：一緒に編集するものを近くに置く
+
+- 対象固有の概要・データ・実装は `objects/<id>/` に集めます。必要に応じて `data/` や `implementations/` を追加します。
+- 複数の対象で共有する関数はルートの `functions/<function-id>/`、横断的な解説は `documents/<document-id>.md` に独立して配置する方針です。共有資源の導入時にこれらのディレクトリを作成します。
+- 関係は包含関係から推測せず、メタデータのID参照で表します。現在の関連項目は `relatedConceptIds` で参照しており、保存場所とは独立しています。
+- 共有関数を導入する際は、関数IDと適用パラメータ、共有文書は文書IDを項目のメタデータに記録し、参照先の検証と表示先の選択を実装します。共有資源を更新した場合に、参照する対象をCIで検証できる構成を目指します。
+
+現段階では共有関数・共有文書の登録／参照スキーマや依存先に応じたCI実行は未実装です。実在しない関数や実装例は登録せず、計算には引き続き公開ライブラリを使います。
+
+新しい種類の計算を追加する場合は、別途ライブラリの実装と `src/lib/conceptRegistry.ts` の接続が必要です。最初の20項や利用可能な関数は引き続き実ライブラリから生成し、JSONに同じ値を重複して手入力しません。Expression JSONやMathJSONの専用評価器は現時点では実装していません。
+
 ## データ・関数と整数列ライブラリ
 
 数列の計算と操作メタデータは [`@butchi/integer-sequences`](https://www.npmjs.com/package/@butchi/integer-sequences) に委ね、サイトの表示・説明・操作UIと責務を分けています。
@@ -31,7 +54,7 @@ NumberとBigIntの明示的な選択、入力境界の検証、JSON・CSV・Java
 
 ## 投稿と今後の構想
 
-項目の提案・修正にはGitHubを基本的に活用し、根拠、レビュー、変更履歴を追える投稿フローを目指します。投稿フローと汎用的なオブジェクトスキーマはこれから整備する計画であり、現在このサイトから一般投稿する機能はありません。
+項目の提案・修正にはGitHubを基本的に活用し、MarkdownとJSONへの差分として根拠、レビュー、変更履歴を追える投稿フローを目指します。汎用的なオブジェクトスキーマや投稿案内は引き続き整備対象で、現在このサイトから一般投稿する機能はありません。
 
 姉妹プロジェクト **Miyaburu（仮称）** は、サイト生成、データ表現、ドキュメントをマトラ言語で構築し、その有効性を示す構想です。LibraはWeb標準を用いる本プロジェクトとして進めます。Miyaburuは現時点では計画段階です。
 
@@ -64,9 +87,19 @@ pnpm test:e2e
 ## ディレクトリ
 
 ```text
+objects/
+├─ fibonacci/
+│  ├─ object.json         項目ID・SEO・関連項目
+│  └─ overview.md         解説本文（GFM・HTML・MathML・SVG）
+├─ prime/
+│  ├─ object.json
+│  └─ overview.md
+└─ square/
+   ├─ object.json
+   └─ overview.md
 src/
+├─ content.config.ts     コンテンツの読み込み・スキーマ検証
 ├─ components/           Astroコンポーネントと操作UI
-├─ content/concepts/     整数列ごとの説明・例
 ├─ layouts/              共通レイアウト、SEO、ナビゲーション
 ├─ lib/                  レジストリ、入力検証、操作サービス
 ├─ pages/                カタログ、詳細ページ、プロジェクト情報

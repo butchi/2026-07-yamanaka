@@ -70,6 +70,30 @@ test("数列の詳細ページでデータ・ドキュメント・関数を確�
   ).toBeVisible();
 });
 
+test("Markdownの本文・GFM表・MathML・コード例を表示できる", async ({ page }) => {
+  await page.goto(fibonacciPath);
+  const document = page.locator(".object-document");
+  await expect(document).toContainText("0と1から始まり");
+  await expect(document.getByRole("table")).toContainText("数値型");
+  await expect(document.locator("math")).toBeVisible();
+  await expect(document.locator("pre").first()).toContainText("range(79)");
+  await expect(document.getByRole("heading", { name: "平方数でもあるフィボナッチ数を探す" })).toBeVisible();
+});
+
+test("Markdownのコード例をコピーできる", async ({ context, page }) => {
+  const baseURL = test.info().project.use.baseURL as string;
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+    origin: new URL(baseURL).origin,
+  });
+  await page.goto(fibonacciPath);
+  const example = page.locator(".object-document copy-code").first();
+  const expectedCode = await example.locator("code").textContent();
+  await example.getByRole("button", { name: "コードをコピー", exact: true }).click();
+  await expect.poll(
+    () => page.evaluate(() => navigator.clipboard.readText()),
+  ).toBe(expectedCode);
+});
+
 test("フィボナッチ数の第10項は55になる", async ({ page }) => {
   await page.goto(fibonacciPath);
   const panel = operation(page, "term");

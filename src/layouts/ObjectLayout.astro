@@ -1,0 +1,221 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import AlgorithmDetails from "@/components/concept/AlgorithmDetails.astro";
+import CodeBlock from "@/components/common/CodeBlock.astro";
+import OperationAvailability from "@/components/concept/OperationAvailability.astro";
+import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
+import ConceptCalculator from "@/components/interactive/ConceptCalculator.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import {
+  type ConceptRegistryEntry,
+  type UiOperation,
+} from "@/lib/conceptRegistry";
+
+interface Props {
+  concept: ConceptRegistryEntry;
+  object: CollectionEntry<"objects">;
+  document: CollectionEntry<"documents">;
+  relatedConcepts: readonly ConceptRegistryEntry[];
+}
+
+const { concept, object, document, relatedConcepts } = Astro.props;
+const { meta } = concept;
+const content = object.data;
+const { Content } = await render(document);
+
+const operationLabels: Record<UiOperation, string> = {
+  term: "第n項",
+  take: "最初のn項",
+  upTo: "指定値以下",
+  has: "所属判定",
+  next: "次の該当数",
+};
+
+const availability = {
+  number: concept.capabilities.number.map(({ operation }) => operation),
+  bigint: concept.capabilities.bigint.map(({ operation }) => operation),
+};
+
+const implementations = (["number", "bigint"] as const).flatMap((numericType) =>
+  concept.capabilities[numericType].map(({ operation, metadata, algorithm }) => ({
+    numericType,
+    operation,
+    operationLabel: operationLabels[operation],
+    source: metadata.source,
+    derivedFrom: metadata.source === "derived" ? metadata.derivedFrom : undefined,
+    implementationId: metadata.source === "native" ? metadata.implementationId : undefined,
+    algorithmId: metadata.source === "native" ? metadata.algorithmId : undefined,
+    algorithmName: algorithm?.name.ja,
+    complexity: metadata.source === "native" ? metadata.complexity : undefined,
+    verification: metadata.source === "native" ? metadata.verification : undefined,
+    benchmarkId: metadata.source === "native" ? metadata.benchmarkId : undefined,
+  })),
+);
+
+const argumentFor = (operation: UiOperation, numericType: "number" | "bigint") => {
+  const value = operation === "term" ? "10" : operation === "take" ? "20" : operation === "has" ? "55" : "100";
+  return numericType === "bigint" && !["term", "take"].includes(operation) ? `${value}n` : value;
+};
+
+const codeExamples = (["number", "bigint"] as const).map((numericType) => ({
+  numericType,
+  code: concept.capabilities[numericType]
+    .map(({ operation }) => `${numericType}.${concept.id}.${operation}(${argumentFor(operation, numericType)});`)
+    .join("\n"),
+})).filter(({ code }) => code.length > 0);
+
+const orderDescription = meta.order === "strictly-increasing"
+  ? "重複なく、値が厳密に増加する列"
+  : meta.order === "nondecreasing"
+    ? "同じ値を含む場合があり、値が減少しない列"
+    : "一定の増加順序を仮定しない列";
+const includesZero = concept.staticTerms.includes(0);
+---
+
+<BaseLayout
+  title={content.seo.title}
+  description={content.seo.description}
+  ogType="article"
+  breadcrumbs={[
+    { label: "数の一覧", href: "/numbers/" },
+    { label: meta.name.ja },
+  ]}
+>
+  <article class="concept-page">
+    <header class="page-header concept-header">
+      <p class="eyebrow">{meta.name.en}</p>
+      <h1>{meta.name.ja}</h1>
+      <p class="lead">{meta.description?.ja}</p>
+      <div class="concept-identifiers">
+        {meta.oeis?.map((oeis) => (
+          <a href={`https://oeis.org/${oeis}`} aria-label={`${oeis}をOEISで見る`}>OEIS {oeis}</a>
+        ))}
+        <span>公開API: 0始まり</span>
+        <span>{includesZero ? "0を含む" : "0を含まない"}</span>
+      </div>
+    </header>
+
+    <section class="page-section sequence-first" aria-labelledby="first-terms-heading">
+      <div class="section-heading-row">
+        <div>
+          <p class="eyebrow">DATA / FIRST 20 TERMS</p>
+          <h2 id="first-terms-heading">データ — 最初の20項</h2>
+        </div>
+        <p class="text-muted">ビルド時にNumber版の <code>take(20)</code> で生成</p>
+      </div>
+      <StaticSequenceList values={[...concept.staticTerms]} />
+    </section>
+
+    <section class="page-section" aria-labelledby="overview-heading">
+      <p class="eyebrow">DOCUMENTATION / DEFINITION</p>
+      <h2 id="overview-heading">ドキュメント — 定義と性質</h2>
+      <div class="object-document">
+        <Content />
+      </div>
+      <dl class="definition-grid">
+        <div>
+          <dt>0の扱い</dt>
+          <dd>{includesZero ? "このサイトとライブラリでは0を含みます。" : "この数の集合に0は含まれません。"}</dd>
+        </div>
+        <div>
+          <dt>公開API上の添字</dt>
+          <dd><code>{meta.indexing.publicOffset}</code> から始まります。</dd>
+        </div>
+        <div>
+          <dt>数列として</dt>
+          <dd>{orderDescription}</dd>
+        </div>
+        <div>
+          <dt>集合として</dt>
+          <dd>値がこの概念に属するかを <code>has(value)</code> で判定します。</dd>
+        </div>
+        <div>
+          <dt>有限・無限</dt>
+          <dd>{meta.finite ? "有限" : "無限"}</dd>
+        </div>
+        <div>
+          <dt>OEIS</dt>
+          <dd>{meta.oeis?.join(", ") ?? "登録情報なし"}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="page-section" aria-labelledby="availability-heading">
+      <p class="eyebrow">FUNCTIONS / REFERENCE</p>
+      <h2 id="availability-heading">関数 — 利用可能な操作</h2>
+      <p>表示内容はライブラリの <code>operations</code> 定義と実在する関数から取得しています。</p>
+      <OperationAvailability availability={availability} />
+    </section>
+
+    <section class="page-section" aria-labelledby="calculator-heading">
+      <p class="eyebrow">TRY IT</p>
+      <h2 id="calculator-heading">ブラウザで生成・判定する</h2>
+      <ConceptCalculator
+        conceptId={concept.id}
+        conceptName={meta.name.ja}
+        availability={availability}
+      />
+    </section>
+
+    <section class="page-section" aria-labelledby="code-heading">
+      <p class="eyebrow">API EXAMPLES</p>
+      <h2 id="code-heading">JavaScriptコード例</h2>
+      <div class="code-example-grid">
+        {codeExamples.map(({ numericType, code }) => (
+          <CodeBlock
+            code={code}
+            label={numericType === "number" ? "Number版" : "BigInt版"}
+          />
+        ))}
+      </div>
+    </section>
+
+    <section class="page-section" aria-labelledby="implementation-heading">
+      <p class="eyebrow">IMPLEMENTATION</p>
+      <h2 id="implementation-heading">アルゴリズムと実装情報</h2>
+      <p>
+        アルゴリズム名はライブラリの <code>algorithmRegistry</code> から表示します。
+        IDが登録されていない操作は、控えめに「実装情報なし」と表示します。
+      </p>
+      <AlgorithmDetails implementations={implementations} />
+    </section>
+
+    <section class="page-section" aria-labelledby="related-heading">
+      <p class="eyebrow">RELATED</p>
+      <h2 id="related-heading">関連する数</h2>
+      <div class="related-grid">
+        {relatedConcepts.map((related) => (
+          <a class="related-card" href={`/numbers/${related.id}/`}>
+            <span>{related.meta.name.en}</span>
+            <strong>{related.meta.name.ja}</strong>
+            <small>{related.meta.description?.ja}</small>
+          </a>
+        ))}
+        <a class="related-card" href="https://www.npmjs.com/package/@butchi/integer-sequences">
+          <span>LIBRARY</span>
+          <strong>@butchi/integer-sequences</strong>
+          <small>APIとパッケージ情報をnpmで確認します。</small>
+        </a>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLPreElement>(".object-document pre").forEach((pre) => {
+    const block = document.createElement("copy-code");
+    block.className = "code-block";
+    block.innerHTML = `
+      <div class="code-block__bar">
+        <span>コード例</span>
+        <button type="button" data-copy-code>コードをコピー</button>
+      </div>
+      <span class="visually-hidden" aria-live="polite" data-copy-status></span>
+    `;
+    const placeholder = document.createComment("markdown-code");
+    pre.replaceWith(placeholder);
+    pre.tabIndex = 0;
+    block.insertBefore(pre, block.lastElementChild);
+    placeholder.replaceWith(block);
+  });
+</script>

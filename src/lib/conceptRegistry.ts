@@ -8,11 +8,6 @@ import {
   type PublicOperationMetadata,
 } from "@butchi/integer-sequences";
 
-import {
-  conceptPageContents,
-  type ConceptPageContent,
-} from "../content/concepts";
-
 export const publishedConcepts = [
   "fibonacci",
   "prime",
@@ -59,7 +54,6 @@ export type ConceptRegistryEntry<
 > = {
   readonly id: Id;
   readonly meta: IntegerConceptMetadata;
-  readonly content: ConceptPageContent<Id>;
   readonly library: {
     readonly number: RuntimeNumericConcept;
     readonly bigint: RuntimeNumericConcept;
@@ -179,14 +173,12 @@ function takeStaticTerms(concept: RuntimeNumericConcept): readonly number[] {
 
 function createRegistryEntry<Id extends PublishedConceptId>(
   id: Id,
-  content: ConceptPageContent<Id>,
   concepts: {
     readonly number: RuntimeNumericConcept;
     readonly bigint: RuntimeNumericConcept;
   },
 ): ConceptRegistryEntry<Id> {
   if (
-    content.conceptId !== id ||
     concepts.number.meta.id !== id ||
     concepts.bigint.meta.id !== id
   ) {
@@ -196,7 +188,6 @@ function createRegistryEntry<Id extends PublishedConceptId>(
   return {
     id,
     meta: concepts.number.meta,
-    content,
     library: concepts,
     capabilities: {
       number: discoverUiOperations(concepts.number),
@@ -209,17 +200,14 @@ function createRegistryEntry<Id extends PublishedConceptId>(
 export const conceptRegistry = {
   fibonacci: createRegistryEntry(
     "fibonacci",
-    conceptPageContents.fibonacci,
     libraryConcepts.fibonacci,
   ),
   prime: createRegistryEntry(
     "prime",
-    conceptPageContents.prime,
     libraryConcepts.prime,
   ),
   square: createRegistryEntry(
     "square",
-    conceptPageContents.square,
     libraryConcepts.square,
   ),
 } as const satisfies {
