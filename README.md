@@ -112,7 +112,12 @@ pnpm dev
 
 ## ビルドとテスト
 
+Markdownは `pnpm lint:md` で検証します。[`.markdownlint.jsonc`](./.markdownlint.jsonc) では日本語文章を意味のまとまりで記述するため行長制限（MD013）を除外しています。項目本文ではページタイトルをレイアウト側で付与するためMD041をファイル単位で除外し、数式用MathMLは該当ブロックだけMD033を除外します。それ以外のルールは有効に保ちます。
+
 ```sh
+# Markdownの検証
+pnpm lint:md
+
 # 型検査を含む静的ビルド
 pnpm build
 

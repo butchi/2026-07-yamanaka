@@ -1,6 +1,9 @@
 ---
 ---
 
+<!-- The page title and enclosing section headings are supplied by ObjectLayout. -->
+<!-- markdownlint-configure-file { "MD041": false } -->
+
 非負整数nを自分自身に掛けたn²の形で表せる整数です。0²を含むため0も平方数です。
 
 ### 注記

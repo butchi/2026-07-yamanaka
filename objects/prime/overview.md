@@ -1,6 +1,9 @@
 ---
 ---
 
+<!-- The page title and enclosing section headings are supplied by ObjectLayout. -->
+<!-- markdownlint-configure-file { "MD041": false } -->
+
 1と自分自身だけを正の約数に持つ、2以上の整数です。1は素数に含まれません。
 
 ### 注記

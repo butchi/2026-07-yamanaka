@@ -1,8 +1,13 @@
 ---
 ---
 
+<!-- The page title and enclosing section headings are supplied by ObjectLayout. -->
+<!-- markdownlint-configure-file { "MD041": false } -->
+
 0と1から始まり、3項目以降を直前の2項の和として作る数列です。
 
+<!-- MathML is intentional semantic markup for the recurrence formula. -->
+<!-- markdownlint-disable MD033 -->
 <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
   <msub><mi>F</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn><mo>,</mo>
   <msub><mi>F</mi><mn>1</mn></msub><mo>=</mo><mn>1</mn><mo>,</mo>
@@ -11,6 +16,7 @@
   <msub><mi>F</mi><mrow><mi>n</mi><mo>−</mo><mn>2</mn></mrow></msub>
   <mspace width="1em"/><mo>(</mo><mi>n</mi><mo>≥</mo><mn>2</mn><mo>)</mo>
 </math>
+<!-- markdownlint-enable MD033 -->
 
 ### 注記
 
