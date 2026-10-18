@@ -133,12 +133,12 @@ const includesZero = digest.data.terms.includes("0");
         <p class="text-muted">保存済みの正確な整数データ（10進文字列・添字0始まり）</p>
       </div>
       <StaticSequenceList values={[...digest.data.terms]} />
-      <p class="dataset-downloads">
-        <a href={`/objects/${identity.id}/data/digest.json`} download>ダイジェストJSON（16項）</a>
-        <a href={`/objects/${identity.id}/data/standard.json`} download>標準JSON（256項）</a>
-        <a href={`/objects/${identity.id}/functions.mjs`} download>JavaScript APIモジュール</a>
+      <p class="dataset-links">
+        <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">ダイジェストJSON（16項）</a>
+        <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">標準JSON（256項）</a>
+        <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">JavaScript APIモジュール</a>
       </p>
-      <p class="text-muted">ダウンロード用データはこのディレクトリ内のJSONファイルから提供されます。計算APIの結果からページ生成時に作り直すことはありません。</p>
+      <p class="text-muted">データはこのディレクトリ内のJSONファイルから提供されます。計算APIの結果からページ生成時に作り直すことはありません。</p>
     </section>
 
     <section class="page-section" aria-labelledby="overview-heading">
@@ -201,7 +201,7 @@ const includesZero = digest.data.terms.includes("0");
         <summary>依存なしの実装を表示・コピー</summary>
         <CodeBlock code={moduleSource} label="JavaScript実装全体（コンソール用）" />
       </details>
-      <p><a href={`/objects/${identity.id}/functions.js`} download>実装をダウンロード</a></p>
+      <p><a href={`/objects/${identity.id}/functions.js`} target="_blank" rel="noopener">実装を表示（functions.js）</a></p>
       <p>貼り付け後、以下のコードをコンソールで実行できます。関数は <code>libra.number</code> / <code>libra.bigint</code> に登録されます。</p>
       <div class="code-example-grid">
         {codeExamples.map(({ numericType, code }) => (
@@ -211,7 +211,7 @@ const includesZero = digest.data.terms.includes("0");
           />
         ))}
       </div>
-      <p>ES moduleとして使う場合は、<code>functions.js</code> と <a href={`/objects/${identity.id}/functions.mjs`} download>functions.mjs</a> を同じディレクトリに保存し、<code>{`import { number, bigint } from "./functions.mjs";`}</code> で読み込めます。アダプターも <code>globalThis.libra</code> に登録します。既存パッケージを使う場合はインポート元を <code>@butchi/integer-sequences</code> に差し替えられます。</p>
+      <p>ES moduleとして使う場合は、<code>functions.js</code> と <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">functions.mjs</a> を同じディレクトリに保存し、<code>{`import { number, bigint } from "./functions.mjs";`}</code> で読み込めます。アダプターも <code>globalThis.libra</code> に登録します。既存パッケージを使う場合はインポート元を <code>@butchi/integer-sequences</code> に差し替えられます。</p>
     </section>
 
     <section class="page-section" aria-labelledby="implementation-heading">

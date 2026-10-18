@@ -335,7 +335,7 @@ a:hover {
   gap: 0.15rem;
 }
 
-.dataset-downloads {
+.dataset-links {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem 1rem;

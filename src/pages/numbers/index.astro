@@ -50,9 +50,9 @@ const concepts = resolveObjectEntries(objects, readmes, datasets);
           </div>
           <p>{concept.meta.description?.ja}</p>
           <StaticSequenceList values={digest.data.terms.slice(0, 10)} />
-          <p class="dataset-downloads">
-            <a href={`/objects/${identity.id}/data/digest.json`}>ダイジェストJSON（16項）</a>
-            <a href={`/objects/${identity.id}/data/standard.json`}>標準JSON（256項）</a>
+          <p class="dataset-links">
+            <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">ダイジェストJSON（16項）</a>
+            <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">標準JSON（256項）</a>
           </p>
           <OperationAvailability availability={availability} />
           <div class="catalog-item__footer">
