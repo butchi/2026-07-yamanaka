@@ -1,20 +1,20 @@
 :root {
   color-scheme: light;
-  --color-canvas: #f6f8fb;
+  --color-canvas: #f5f4ef;
   --color-surface: #ffffff;
-  --color-surface-muted: #eef3f8;
-  --color-text: #182230;
-  --color-text-muted: #526173;
-  --color-border: #cad4df;
-  --color-border-strong: #8494a7;
-  --color-accent: #145da0;
-  --color-accent-strong: #0b467d;
-  --color-accent-ink: #0b467d;
-  --color-accent-soft: #e7f2fb;
+  --color-surface-muted: #f0eee7;
+  --color-text: #20251f;
+  --color-text-muted: #687067;
+  --color-border: #d7d8ce;
+  --color-border-strong: #9da397;
+  --color-accent: #355c47;
+  --color-accent-strong: #244534;
+  --color-accent-ink: #244534;
+  --color-accent-soft: #e5ece5;
   --color-success: #146c43;
   --color-error: #a52828;
   --color-danger: #a52828;
-  --color-focus: #934800;
+  --color-focus: #a34d2f;
   --color-code: #0f1d2b;
   --color-code-text: #e8f1f8;
   --shadow-surface: 0 1px 2px rgb(24 34 48 / 8%);
@@ -22,7 +22,7 @@
   --radius-medium: 0.65rem;
   --radius-md: 0.65rem;
   --radius-lg: 0.85rem;
-  --content-width: 72rem;
+  --content-width: 76rem;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono",
@@ -978,5 +978,306 @@ th {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+.site-header {
+  border-color: #d8dbd2;
+  background: rgb(250 249 245 / 94%);
+}
+
+.header-inner {
+  min-height: 4.8rem;
+}
+
+.site-brand {
+  gap: 0.7rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.site-brand-mark {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--color-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.site-brand-caption {
+  margin-left: 0.2rem;
+  color: var(--color-text-muted);
+  font: 700 0.62rem/1.2 var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.breadcrumbs {
+  padding-top: 0.7rem;
+}
+
+.libra-hero {
+  display: grid;
+  min-height: clamp(29rem, 58vw, 42rem);
+  grid-template-columns: minmax(0, 1.45fr) minmax(15rem, 0.65fr);
+  align-items: center;
+  gap: clamp(2rem, 8vw, 7rem);
+  padding-block: clamp(3.5rem, 9vw, 7.5rem);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.libra-hero__copy {
+  max-width: 48rem;
+}
+
+.libra-hero h1 {
+  margin-block: 1.1rem 1.25rem;
+  font-family: Georgia, "Noto Serif JP", "Yu Mincho", serif;
+  font-size: clamp(3rem, 8.2vw, 6.6rem);
+  font-weight: 500;
+  letter-spacing: -0.075em;
+  line-height: 1.18;
+}
+
+.libra-hero .lead {
+  max-width: 46ch;
+  color: #50594e;
+  font-size: clamp(1.02rem, 1.8vw, 1.2rem);
+}
+
+.libra-hero .hero-actions {
+  margin-top: 2rem;
+}
+
+.libra-hero .primary-link {
+  min-height: 3.15rem;
+  padding-inline: 1.25rem;
+  border-radius: 999px;
+}
+
+.hero-secondary-link {
+  padding: 0.6rem 0.3rem;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.libra-hero__note {
+  position: relative;
+  padding: 2rem 1.6rem 1.6rem;
+  border-top: 1px solid var(--color-text);
+  border-bottom: 1px solid var(--color-text);
+}
+
+.hero-note-mark {
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin-bottom: 2rem;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  font: 500 2rem/1 Georgia, "Times New Roman", serif;
+}
+
+.libra-hero__note > p:not(.eyebrow) {
+  margin-block: 1rem;
+  font: 500 clamp(1.7rem, 3vw, 2.4rem)/1.4 Georgia, "Times New Roman", serif;
+  letter-spacing: -0.04em;
+}
+
+.libra-hero__note small {
+  display: block;
+  max-width: 24ch;
+  line-height: 1.7;
+}
+
+.home-catalog {
+  margin-top: clamp(3rem, 8vw, 6rem);
+}
+
+.home-catalog h2,
+.libra-pillars h2,
+.libra-contribute h2 {
+  margin-top: 0.4rem;
+  border: 0;
+  font-family: Georgia, "Noto Serif JP", "Yu Mincho", serif;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.section-intro {
+  margin-bottom: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+.libra-object-card {
+  padding: 1.35rem;
+  border: 1px solid #dcddd4;
+  border-radius: 0.4rem;
+  box-shadow: none;
+  transition: border-color 160ms ease, translate 160ms ease;
+}
+
+.libra-object-card:hover {
+  translate: 0 -3px;
+  border-color: #849585;
+}
+
+.object-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.object-index {
+  color: var(--color-text-muted);
+  font: 0.78rem var(--font-mono);
+}
+
+.object-type,
+.pillar-number {
+  color: var(--color-accent-strong);
+  font: 700 0.65rem var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.libra-object-card .concept-card__english {
+  margin-block: 0;
+  font-size: 0.7rem;
+}
+
+.libra-object-card h3 {
+  margin-block: 0.15rem 0.55rem;
+  font: 500 1.6rem/1.3 Georgia, "Noto Serif JP", "Yu Mincho", serif;
+}
+
+.libra-object-card h3 a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.libra-object-card h3 a:hover,
+.libra-object-card h3 a span {
+  color: var(--color-accent);
+}
+
+.object-description {
+  min-height: 3.4em;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+}
+
+.libra-object-card .static-sequence-list,
+.libra-object-card [data-testid="static-sequence-list"] {
+  margin-block: 1rem;
+  padding: 0.8rem;
+  border-color: #e2e2dc;
+  border-radius: 0.25rem;
+  background: #faf9f6;
+  box-shadow: none;
+  font-size: 0.88rem;
+}
+
+.libra-object-card .text-link {
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.libra-pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.pillar-intro {
+  grid-column: 1 / -1;
+  max-width: 44rem;
+  margin-bottom: 0.5rem;
+}
+
+.pillar-intro > p:last-child,
+.libra-pillars article > p {
+  color: var(--color-text-muted);
+  font-size: 0.93rem;
+}
+
+.libra-pillars article {
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.libra-pillars article h3 {
+  margin-block: 0.85rem 0.45rem;
+  font-family: Georgia, "Noto Serif JP", "Yu Mincho", serif;
+  font-weight: 500;
+}
+
+.libra-contribute {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 0.5rem 3rem;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border-radius: 0.4rem;
+  background: #e9ede5;
+}
+
+.libra-contribute h2 {
+  margin-bottom: 0;
+}
+
+.libra-contribute > p {
+  margin-top: 0;
+  color: #50594e;
+}
+
+.libra-contribute .text-link {
+  grid-column: 2;
+  text-decoration: none;
+}
+
+@media (max-width: 44rem) {
+  .site-brand-caption {
+    display: none;
+  }
+
+  .libra-hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding-block: 3rem;
+  }
+
+  .libra-hero h1 {
+    font-size: clamp(3rem, 15vw, 5rem);
+  }
+
+  .libra-hero__note {
+    padding: 1.25rem 0;
+  }
+
+  .hero-note-mark {
+    position: absolute;
+    top: 1.1rem;
+    right: 0;
+    width: 2.8rem;
+    height: 2.8rem;
+    margin: 0;
+  }
+
+  .libra-hero__note > p:not(.eyebrow) {
+    font-size: 1.6rem;
+  }
+
+  .libra-pillars,
+  .libra-contribute {
+    grid-template-columns: 1fr;
+  }
+
+  .pillar-intro,
+  .libra-contribute .text-link {
+    grid-column: auto;
   }
 }

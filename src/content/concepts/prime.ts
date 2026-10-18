@@ -3,7 +3,7 @@ import type { ConceptPageContent } from "./types";
 export const primeContent = {
   conceptId: "prime",
   seo: {
-    title: "素数一覧｜JavaScriptで判定・生成",
+    title: "素数 — データ・関数・解説｜Libra",
     description:
       "素数の定義と最初の項を一覧で確認し、JavaScriptで第n素数の生成、所属判定、次の素数や指定値以下の素数を求められます。",
   },

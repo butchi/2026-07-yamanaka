@@ -38,6 +38,11 @@ async function chooseOutputFormat(panel: Locator, format: "JSON") {
 test("トップページからフィボナッチ数ページへ移動できる", async ({ page }) => {
   await page.goto("/");
 
+  await expect(page).toHaveTitle(/Libra/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /知識を/ }),
+  ).toBeVisible();
+
   await page
     .getByRole("link", { name: /フィボナッチ数/ })
     .first()
@@ -46,6 +51,22 @@ test("トップページからフィボナッチ数ページへ移動できる",
   await expect(page).toHaveURL(/\/numbers\/fibonacci\/?$/);
   await expect(
     page.getByRole("heading", { level: 1, name: /フィボナッチ数/ }),
+  ).toBeVisible();
+});
+
+test("数列の詳細ページでデータ・ドキュメント・関数を確認できる", async ({
+  page,
+}) => {
+  await page.goto(fibonacciPath);
+
+  await expect(
+    page.getByRole("heading", { level: 2, name: /データ.*最初の20項/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: /ドキュメント.*定義と性質/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: /関数.*利用可能な操作/ }),
   ).toBeVisible();
 });
 

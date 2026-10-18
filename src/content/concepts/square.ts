@@ -3,7 +3,7 @@ import type { ConceptPageContent } from "./types";
 export const squareContent = {
   conceptId: "square",
   seo: {
-    title: "平方数一覧｜第n項・判定・JSON出力",
+    title: "平方数 — データ・関数・解説｜Libra",
     description:
       "平方数の定義と最初の項を一覧で確認し、JavaScriptで第n項の生成、所属判定、次の平方数や指定値以下の列挙を試せます。",
   },

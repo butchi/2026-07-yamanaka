@@ -1,60 +1,84 @@
 ---
-import CodeBlock from "@/components/common/CodeBlock.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-
-const dependencyCode = `@butchi/integer-sequences  ←  整数列ビューア
-       計算・メタ情報          表示・操作・SEO`;
 ---
 
 <BaseLayout
-  title="このサイトについて｜整数列ビューア"
-  description="整数列ビューアの目的、整数列ライブラリとの責務分担、Number・BigIntの表示方針とブラウザ上の利用制限を説明します。"
-  breadcrumbs={[{ label: "このサイトについて" }]}
+  title="Libraについて — 設計方針"
+  description="Libraが目指す数学・工学オブジェクトのデータ、関数、ドキュメントの統合、GitHubを活用した投稿方針、Miyaburu構想について説明します。"
+  breadcrumbs={[{ label: "プロジェクト" }]}
 >
   <header class="page-header">
-    <p class="eyebrow">ABOUT</p>
-    <h1>数を探す人と、コードで使う人の間に</h1>
+    <p class="eyebrow">ABOUT LIBRA</p>
+    <h1>知識を、参照できて、使えるものに。</h1>
     <p class="lead">
-      整数列ビューアは、数学的な一覧を探す人が定義と最初の項へすぐ到達でき、開発者が同じ画面でJavaScript APIを試せるようにするサイトです。
+      Libra（仮称）は、数学的・工学的オブジェクトを項目ごとにまとめる知識ベースです。
+      数列を入り口に、信頼できるデータ、厳密な関数仕様、理解を助けるドキュメントをひとつの場所に整えます。
     </p>
   </header>
 
-  <section class="page-section split-section">
+  <section class="page-section" aria-labelledby="why-heading">
+    <p class="eyebrow">WHY LIBRA</p>
+    <h2 id="why-heading">OEISの豊かな知識を、再利用しやすいWebへ</h2>
+    <p>
+      OEISのように数学的な対象を横断して調べられる強みを土台に、現代のWeb標準を活用して見つけやすさと使いやすさを高めます。
+      特に、数値列の添字、型、境界、関数の入出力といった曖昧になりやすい部分を明示し、データを人にもプログラムにも再利用しやすくすることを重視します。
+    </p>
+    <p>
+      MathWorldの解説、Wolfram Function Repositoryの関数、Wikipediaの項目構成、Rosetta Codeの実装例から着想を得つつ、
+      まずはデータと関数の品質を優先し、そのうえでドキュメントとしても役立つ項目を育てます。
+    </p>
+  </section>
+
+  <section class="page-section" aria-labelledby="model-heading">
+    <p class="eyebrow">OBJECT MODEL</p>
+    <h2 id="model-heading">ひとつの対象を、三つの面から記述</h2>
+    <div class="feature-grid libra-pillars">
+      <article>
+        <span class="pillar-number">01 / DATA</span>
+        <h3>データ</h3>
+        <p>定義域、添字、値、単位、出典といったデータの意味を明確にし、機械可読な形で提供します。</p>
+      </article>
+      <article>
+        <span class="pillar-number">02 / FUNCTIONS</span>
+        <h3>関数</h3>
+        <p>対象に関する計算や判定を、引数・戻り値・制約がわかる関数として公開します。</p>
+      </article>
+      <article>
+        <span class="pillar-number">03 / DOCUMENTATION</span>
+        <h3>ドキュメント</h3>
+        <p>定義、性質、出典、例、実装上の注意を集約し、知識を読み解くための入口にします。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="page-section split-section" aria-labelledby="contribution-heading">
     <div>
-      <p class="eyebrow">RESPONSIBILITY</p>
-      <h2>ライブラリとの関係</h2>
+      <p class="eyebrow">CONTRIBUTION</p>
+      <h2 id="contribution-heading">変更の根拠を残す投稿フロー</h2>
       <p>
-        数の名称、OEIS、添字、利用可能な操作、アルゴリズム情報、計算そのものは独立した
-        <code>@butchi/integer-sequences</code> が担います。このサイトはSEO本文、表示順、操作UI、出力形式だけを担います。
+        投稿とレビューには基本的にGitHubを使い、提案、差分、根拠、議論を追跡できる形にする方針です。
+        自動投稿やユーザーアカウントに依存せず、項目の定義とデータを変更履歴とともに検証できる運用を目指します。
       </p>
     </div>
-    <CodeBlock code={dependencyCode} label="依存方向" />
-  </section>
-
-  <section class="page-section">
-    <p class="eyebrow">NUMERIC TYPES</p>
-    <h2>NumberとBigInt</h2>
-    <div class="type-comparison">
-      <article>
-        <p class="type-badge">Number</p>
-        <p>安全整数の範囲で利用します。結果が正確に表現できない場合はエラーとして案内し、BigIntへ自動変換しません。</p>
-      </article>
-      <article>
-        <p class="type-badge">BigInt</p>
-        <p>画面とJavaScriptでは末尾に <code>n</code> を付けます。JSONにBigIntは直接入らないため、10進文字列として出力します。</p>
-      </article>
+    <div class="notice">
+      <strong>現在の段階：</strong>
+      このサイトは再構築の初期段階で、公開項目はフィボナッチ数・素数・平方数です。
+      一般投稿のGitHubフローや、網羅的なオブジェクトスキーマは今後整備する計画です。
     </div>
   </section>
 
-  <section class="page-section">
-    <p class="eyebrow">LIMITS</p>
-    <h2>ブラウザ上の実行制限</h2>
-    <p>ページが長時間停止しないよう、表示1,000項、出力10,000項などの実用上限を設けています。これは数学的限界でもライブラリ自体の限界でもありません。</p>
-  </section>
-
-  <section class="page-section">
-    <p class="eyebrow">BLOG</p>
-    <h2>ブログとの役割分担</h2>
-    <p>ブログは背景知識と詳しい読み物、このサイトは実行・生成・コピー・JSON・CSV・実装情報を担当します。既存記事の移転や本文の大量複製は行いません。</p>
+  <section class="page-section relation-grid" aria-labelledby="future-heading">
+    <div>
+      <p class="eyebrow">ROADMAP</p>
+      <h2 id="future-heading">標準Webとマトラ言語</h2>
+    </div>
+    <article>
+      <h3>Libra</h3>
+      <p>Web標準技術を基盤に、数学・工学オブジェクトのデータ、関数、ドキュメントを統合する本プロジェクトです。</p>
+    </article>
+    <article>
+      <h3>Miyaburu（構想）</h3>
+      <p>マトラ言語によるサイト生成、データ表現、ドキュメント構築の有効性を示す姉妹プロジェクトとして構想しています。現時点では計画段階です。</p>
+    </article>
   </section>
 </BaseLayout>

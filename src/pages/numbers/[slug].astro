@@ -88,7 +88,7 @@ const includesZero = concept.staticTerms.includes(0);
   <article class="concept-page">
     <header class="page-header concept-header">
       <p class="eyebrow">{meta.name.en}</p>
-      <h1>{meta.name.ja}一覧・JavaScriptでの生成方法</h1>
+      <h1>{meta.name.ja}</h1>
       <p class="lead">{meta.description?.ja}</p>
       <div class="concept-identifiers">
         {meta.oeis?.map((oeis) => (
@@ -102,8 +102,8 @@ const includesZero = concept.staticTerms.includes(0);
     <section class="page-section sequence-first" aria-labelledby="first-terms-heading">
       <div class="section-heading-row">
         <div>
-          <p class="eyebrow">FIRST 20 TERMS</p>
-          <h2 id="first-terms-heading">最初の20項</h2>
+          <p class="eyebrow">DATA / FIRST 20 TERMS</p>
+          <h2 id="first-terms-heading">データ — 最初の20項</h2>
         </div>
         <p class="text-muted">ビルド時にNumber版の <code>take(20)</code> で生成</p>
       </div>
@@ -111,8 +111,8 @@ const includesZero = concept.staticTerms.includes(0);
     </section>
 
     <section class="page-section" aria-labelledby="overview-heading">
-      <p class="eyebrow">OVERVIEW</p>
-      <h2 id="overview-heading">定義と性質</h2>
+      <p class="eyebrow">DOCUMENTATION / DEFINITION</p>
+      <h2 id="overview-heading">ドキュメント — 定義と性質</h2>
       <p>{content.definition}</p>
       <dl class="definition-grid">
         <div>
@@ -146,8 +146,8 @@ const includesZero = concept.staticTerms.includes(0);
     </section>
 
     <section class="page-section" aria-labelledby="availability-heading">
-      <p class="eyebrow">AVAILABLE OPERATIONS</p>
-      <h2 id="availability-heading">利用可能な操作</h2>
+      <p class="eyebrow">FUNCTIONS / REFERENCE</p>
+      <h2 id="availability-heading">関数 — 利用可能な操作</h2>
       <p>表示内容はライブラリの <code>operations</code> 定義と実在する関数から取得しています。</p>
       <OperationAvailability availability={availability} />
     </section>

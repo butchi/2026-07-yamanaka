@@ -1,8 +1,7 @@
 ---
 const navigation = [
-  { href: "/numbers/", label: "数の一覧" },
-  { href: "/about/", label: "このサイトについて" },
-  { href: "/license/", label: "ライセンス" },
+  { href: "/numbers/", label: "カタログ" },
+  { href: "/about/", label: "プロジェクト" },
 ] as const;
 
 const currentPath = Astro.url.pathname;
@@ -12,9 +11,10 @@ const isCurrent = (href: string) => currentPath.startsWith(href);
 <a class="skip-link" href="#main-content">本文へ移動</a>
 <header class="site-header">
   <div class="site-container header-inner">
-    <a class="site-brand" href="/" aria-label="整数列ビューア ホーム">
-      <span class="site-brand-mark" aria-hidden="true">∑</span>
-      <span>整数列ビューア</span>
+    <a class="site-brand" href="/" aria-label="Libra ホーム">
+      <span class="site-brand-mark" aria-hidden="true">L</span>
+      <span>Libra</span>
+      <span class="site-brand-caption">KNOWLEDGE FOR OBJECTS</span>
     </a>
 
     <nav class="primary-navigation" aria-label="主要ナビゲーション">

@@ -22,12 +22,12 @@ const {
   title,
   description,
   canonical,
-  ogImage = "/og.png",
+  ogImage = "/og-libra.png",
   breadcrumbs = [],
   ogType = "website",
 } = Astro.props;
 
-const siteName = "整数列ビューア";
+const siteName = "Libra";
 const siteBase = Astro.site ?? new URL(Astro.url.origin);
 const canonicalUrl = new URL(canonical ?? Astro.url.pathname, siteBase);
 canonicalUrl.search = "";
@@ -78,7 +78,7 @@ const structuredData = {
       url: websiteUrl,
       inLanguage: "ja",
       description:
-        "整数列・整数集合をJavaScriptで調べ、生成し、コピーできるWebサイトです。",
+        "数学・工学オブジェクトのデータ、関数、ドキュメントをまとめるオープンな知識ベースです。",
     },
     {
       "@type": "BreadcrumbList",
@@ -120,7 +120,7 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
     {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
     {ogImageUrl && <meta property="og:image:width" content="1200" />}
     {ogImageUrl && <meta property="og:image:height" content="630" />}
-    {ogImageUrl && <meta property="og:image:alt" content="整数列ビューア — 数の並びを、読む。試す。コードで使う。" />}
+    {ogImageUrl && <meta property="og:image:alt" content="Libra — 知識を、使えるかたちに。" />}
 
     <meta
       name="twitter:card"
@@ -129,7 +129,7 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
-    {ogImageUrl && <meta name="twitter:image:alt" content="整数列ビューア — 数の並びを、読む。試す。コードで使う。" />}
+    {ogImageUrl && <meta name="twitter:image:alt" content="Libra — 知識を、使えるかたちに。" />}
 
     <script
       type="application/ld+json"

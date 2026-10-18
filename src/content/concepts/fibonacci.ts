@@ -3,7 +3,7 @@ import type { ConceptPageContent } from "./types";
 export const fibonacciContent = {
   conceptId: "fibonacci",
   seo: {
-    title: "フィボナッチ数一覧｜JavaScript・JSONで生成",
+    title: "フィボナッチ数 — データ・関数・解説｜Libra",
     description:
       "フィボナッチ数の定義と最初の項を確認し、JavaScriptで第n項・最初のn項・指定値以下の列挙や所属判定を試せます。",
   },
