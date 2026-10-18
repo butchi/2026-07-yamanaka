@@ -36,7 +36,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 各項目の `README.md` は、そのディレクトリにある対象の概要・定義・注意点・利用例を説明するREADMEです。GitHubでもディレクトリを開くと本文を読めます。独立した文書として登録するのではなく、`object.json` やデータ・実装と組になる項目の構成要素として扱い、サイトでも同じ本文を表示します。読み込み先も汎用の文書コレクションではなく `objectReadmes` として区別します。
 
-例えば、フィボナッチ数の説明は [`objects/fibonacci/README.md`](./objects/fibonacci/README.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownの空のフロントマターは追加メタデータを持たせないためのもので、SEOなどはJSONに集約しています。
+例えば、フィボナッチ数の説明は [`objects/fibonacci/README.md`](./objects/fibonacci/README.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownにはフロントマターを付けず、H1から本文を開始します。SEOなどのメタデータはJSONに集約しています。
 
 同じディレクトリ内の `object.json` と `README.md` を必ず組にし、ディレクトリ名を項目IDとします。データセットは正確に16項・256項であること、十進整数文字列の形式、オブジェクトID、添字原点、およびダイジェストが標準データの先頭と一致することを検証します。読み込み対象は `object.json`、`README.md`、`data/digest.json`、`data/standard.json` に限定するため、対象固有の補助データや補足文書を追加しても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
 
