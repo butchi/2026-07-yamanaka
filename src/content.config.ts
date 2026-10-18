@@ -1,6 +1,9 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { uuidV7Pattern } from "./lib/objectIdentity";
+
+const objectId = z.string().regex(uuidV7Pattern);
 
 const objectReadmes = defineCollection({
   loader: glob({
@@ -18,12 +21,13 @@ const objects = defineCollection({
     generateId: ({ entry }) => entry.split("/")[0],
   }),
   schema: z.object({
+    id: objectId,
     conceptId: z.string().min(1),
     seo: z.object({
       title: z.string().trim().min(1),
       description: z.string().trim().min(1),
     }).strict(),
-    relatedConceptIds: z.array(z.string().min(1)),
+    relatedObjectIds: z.array(objectId),
     blog: z.object({
       title: z.string().trim().min(1),
       url: z.url({ protocol: /^https?$/ }),
@@ -38,7 +42,7 @@ const datasets = defineCollection({
     generateId: ({ entry }) => entry.replace(/\.json$/, ""),
   }),
   schema: z.object({
-    objectId: z.string().min(1),
+    objectId,
     format: z.enum(["digest", "standard"]),
     indexOrigin: z.number().int(),
     valueEncoding: z.literal("base10-integer-string"),

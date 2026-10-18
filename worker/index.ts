@@ -10,6 +10,14 @@ interface Env {
  */
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const destination = objectRedirects[url.pathname];
+    if (destination && (request.method === "GET" || request.method === "HEAD")) {
+      const target = new URL(destination, url);
+      target.search = url.search;
+      return Promise.resolve(Response.redirect(target.href, 301));
+    }
     return env.ASSETS.fetch(request);
   },
 };
+import { objectRedirects } from "../src/lib/objectIdentity";

@@ -4,12 +4,12 @@ import { getCollection } from "astro:content";
 export async function getStaticPaths() {
   const datasets = await getCollection("datasets");
   return datasets.map((dataset) => {
-    const [id, category, format, ...extraParts] = dataset.id.split("/");
-    if (category !== "data" || !id || !format || extraParts.length > 0) {
+    const [directory, category, format, ...extraParts] = dataset.id.split("/");
+    if (category !== "data" || !directory || !format || extraParts.length > 0) {
       throw new Error(`Invalid object dataset ID "${dataset.id}".`);
     }
     return {
-      params: { id, dataset: format },
+      params: { id: dataset.data.objectId, dataset: format },
       props: { data: dataset.data },
     };
   });

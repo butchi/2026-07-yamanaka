@@ -7,6 +7,7 @@ import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
 import ConceptCalculator from "@/components/interactive/ConceptCalculator.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { github } from "@/lib/github";
+import { type ObjectIdentity, objectPagePath } from "@/lib/objectIdentity";
 import {
   type ConceptRegistryEntry,
   type UiOperation,
@@ -14,15 +15,17 @@ import {
 
 interface Props {
   concept: ConceptRegistryEntry;
+  identity: ObjectIdentity;
+  sourceDirectory: string;
   object: CollectionEntry<"objects">;
   readme: CollectionEntry<"objectReadmes">;
   digest: CollectionEntry<"datasets">;
-  relatedConcepts: readonly ConceptRegistryEntry[];
+  relatedObjects: readonly { identity: ObjectIdentity; concept: ConceptRegistryEntry }[];
 }
 
-const { concept, object, readme, digest, relatedConcepts } = Astro.props;
+const { concept, identity, sourceDirectory, object, readme, digest, relatedObjects } = Astro.props;
 const { meta } = concept;
-const objectPath = `objects/${concept.id}`;
+const objectPath = `objects/${sourceDirectory}`;
 const content = object.data;
 const { Content } = await render(readme);
 const moduleSources = import.meta.glob<string>("../../objects/*/functions.js", {
@@ -30,7 +33,7 @@ const moduleSources = import.meta.glob<string>("../../objects/*/functions.js", {
   import: "default",
   eager: true,
 });
-const moduleSource = moduleSources[`../../objects/${concept.id}/functions.js`];
+const moduleSource = moduleSources[`../../objects/${sourceDirectory}/functions.js`];
 if (!moduleSource) {
   throw new Error(`Missing standalone function module for "${concept.id}".`);
 }
@@ -88,6 +91,7 @@ const includesZero = digest.data.terms.includes("0");
   title={content.seo.title}
   description={content.seo.description}
   ogType="article"
+  canonical={objectPagePath(identity)}
   breadcrumbs={[
     { label: "数の一覧", href: "/numbers/" },
     { label: meta.name.ja },
@@ -104,6 +108,7 @@ const includesZero = digest.data.terms.includes("0");
         ))}
         <span>公開API: 0始まり</span>
         <span>{includesZero ? "0を含む" : "0を含まない"}</span>
+        <a href={`/id/${identity.id}/`}>永続リンク</a>
       </div>
       <aside class="notice" aria-label="この項目への貢献">
         <strong>この項目を編集・提案する</strong>
@@ -129,9 +134,9 @@ const includesZero = digest.data.terms.includes("0");
       </div>
       <StaticSequenceList values={[...digest.data.terms]} />
       <p class="dataset-downloads">
-        <a href={`/objects/${concept.id}/data/digest.json`} download>ダイジェストJSON（16項）</a>
-        <a href={`/objects/${concept.id}/data/standard.json`} download>標準JSON（256項）</a>
-        <a href={`/objects/${concept.id}/functions.mjs`} download>JavaScript APIモジュール</a>
+        <a href={`/objects/${identity.id}/data/digest.json`} download>ダイジェストJSON（16項）</a>
+        <a href={`/objects/${identity.id}/data/standard.json`} download>標準JSON（256項）</a>
+        <a href={`/objects/${identity.id}/functions.mjs`} download>JavaScript APIモジュール</a>
       </p>
       <p class="text-muted">ダウンロード用データはこのディレクトリ内のJSONファイルから提供されます。計算APIの結果からページ生成時に作り直すことはありません。</p>
     </section>
@@ -196,7 +201,7 @@ const includesZero = digest.data.terms.includes("0");
         <summary>依存なしの実装を表示・コピー</summary>
         <CodeBlock code={moduleSource} label="JavaScript実装全体（コンソール用）" />
       </details>
-      <p><a href={`/objects/${concept.id}/functions.js`} download>実装をダウンロード</a></p>
+      <p><a href={`/objects/${identity.id}/functions.js`} download>実装をダウンロード</a></p>
       <p>貼り付け後、以下のコードをコンソールで実行できます。関数は <code>libra.number</code> / <code>libra.bigint</code> に登録されます。</p>
       <div class="code-example-grid">
         {codeExamples.map(({ numericType, code }) => (
@@ -206,7 +211,7 @@ const includesZero = digest.data.terms.includes("0");
           />
         ))}
       </div>
-      <p>ES moduleとして使う場合は、<code>functions.js</code> と <a href={`/objects/${concept.id}/functions.mjs`} download>functions.mjs</a> を同じディレクトリに保存し、<code>{`import { number, bigint } from "./functions.mjs";`}</code> で読み込めます。アダプターも <code>globalThis.libra</code> に登録します。既存パッケージを使う場合はインポート元を <code>@butchi/integer-sequences</code> に差し替えられます。</p>
+      <p>ES moduleとして使う場合は、<code>functions.js</code> と <a href={`/objects/${identity.id}/functions.mjs`} download>functions.mjs</a> を同じディレクトリに保存し、<code>{`import { number, bigint } from "./functions.mjs";`}</code> で読み込めます。アダプターも <code>globalThis.libra</code> に登録します。既存パッケージを使う場合はインポート元を <code>@butchi/integer-sequences</code> に差し替えられます。</p>
     </section>
 
     <section class="page-section" aria-labelledby="implementation-heading">
@@ -223,8 +228,8 @@ const includesZero = digest.data.terms.includes("0");
       <p class="eyebrow">RELATED</p>
       <h2 id="related-heading">関連する数</h2>
       <div class="related-grid">
-        {relatedConcepts.map((related) => (
-          <a class="related-card" href={`/numbers/${related.id}/`}>
+        {relatedObjects.map(({ concept: related, identity: relatedIdentity }) => (
+          <a class="related-card" href={objectPagePath(relatedIdentity)}>
             <span>{related.meta.name.en}</span>
             <strong>{related.meta.name.ja}</strong>
             <small>{related.meta.description?.ja}</small>

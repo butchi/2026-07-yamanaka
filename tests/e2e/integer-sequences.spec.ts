@@ -1,4 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { objectIdentities } from "../../src/lib/objectIdentity";
+
+const fibonacciId = objectIdentities[0].id;
 
 const fibonacciPath = "/numbers/fibonacci/";
 const primePath = "/numbers/prime/";
@@ -73,16 +76,16 @@ test("数列の詳細ページでデータ・ドキュメント・関数を確�
   ).toHaveCount(16);
   await expect(page.getByRole("link", { name: /標準JSON（256項）/ })).toHaveAttribute(
     "href",
-    "/objects/fibonacci/data/standard.json",
+    `/objects/${fibonacciId}/data/standard.json`,
   );
 });
 
 test("保存済み標準JSONは正確な256項を配信する", async ({ request }) => {
-  const response = await request.get("/objects/fibonacci/data/standard.json");
+  const response = await request.get(`/objects/${fibonacciId}/data/standard.json`);
   expect(response.ok()).toBeTruthy();
   const data = await response.json();
   expect(data).toMatchObject({
-    objectId: "fibonacci",
+    objectId: fibonacciId,
     format: "standard",
     indexOrigin: 0,
     valueEncoding: "base10-integer-string",
@@ -97,7 +100,7 @@ test("保存済み標準JSONは正確な256項を配信する", async ({ request
 test("対象関数をAPI互換のJavaScriptモジュールとして取得できる", async ({
   request,
 }) => {
-  const response = await request.get("/objects/fibonacci/functions.mjs");
+  const response = await request.get(`/objects/${fibonacciId}/functions.mjs`);
   expect(response.ok()).toBeTruthy();
   expect(response.headers()["content-type"]).toContain("text/javascript");
   const moduleSource = await response.text();
@@ -112,8 +115,8 @@ test("コピーした実装をコンソール相当の通常スクリプトと�
     origin: new URL(baseURL).origin,
   });
   const sources: string[] = [];
-  for (const id of ["fibonacci", "prime", "square"]) {
-    await page.goto(`/numbers/${id}/`);
+  for (const { id, slug } of objectIdentities) {
+    await page.goto(`/numbers/${slug}/`);
     const implementation = page.getByTestId("standalone-module");
     await implementation.locator("summary").click();
     await implementation.getByRole("button", { name: "コードをコピー", exact: true }).click();
@@ -127,7 +130,7 @@ test("コピーした実装をコンソール相当の通常スクリプトと�
     ).toBe(source);
     const values = await page.evaluate(async (objectId) =>
       (0, eval)(`${await navigator.clipboard.readText()}\nlibra.number.${objectId}.take(16).map(String);`),
-    id);
+    slug);
     const digest = await page.request.get(`/objects/${id}/data/digest.json`);
     expect(values).toEqual((await digest.json()).terms);
   }
@@ -142,26 +145,29 @@ test("コピーした実装をコンソール相当の通常スクリプトと�
 
 test("配信されたES moduleアダプターからも同じ関数を呼び出せる", async ({ page }) => {
   await page.goto(fibonacciPath);
-  const results = await page.evaluate(async () => {
+  const results = await page.evaluate(async (identities) => {
     const load = (id: string) => import(/* @vite-ignore */ `/objects/${id}/functions.mjs`);
-    const fibonacci = await load("fibonacci");
-    const prime = await load("prime");
-    const square = await load("square");
+    const fibonacci = await load(identities[0].id);
+    const prime = await load(identities[1].id);
+    const square = await load(identities[2].id);
     return [
       fibonacci.number.fibonacci.term(10),
       prime.number.prime.has(97),
       square.bigint.square.term(10).toString(),
     ];
-  });
+  }, objectIdentities);
   expect(results).toEqual([55, true, "100"]);
 });
 
-test("Markdownの本文・GFM表・MathML・コード例を表示できる", async ({ page }) => {
+test("項目READMEの本文・GFM表・LaTeX数式・コード例を表示できる", async ({ page }) => {
   await page.goto(fibonacciPath);
   const document = page.locator(".object-document");
   await expect(document).toContainText("0と1から始まり");
   await expect(document.getByRole("table")).toContainText("数値型");
-  await expect(document.locator("math")).toBeVisible();
+  await expect(document.locator(".katex-display .katex-html")).toBeVisible();
+  await expect(document.locator('math[display="block"]')).toHaveCount(1);
+  await expect(document.locator('annotation[encoding="application/x-tex"]').first())
+    .toContainText("F_{n-1}");
   await expect(document.locator("pre").first()).toContainText("range(79)");
   await expect(document.getByRole("heading", { name: "平方数でもあるフィボナッチ数を探す" })).toBeVisible();
 });

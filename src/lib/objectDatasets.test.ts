@@ -3,6 +3,10 @@ import { resolve } from "node:path";
 import { bigint, number } from "@butchi/integer-sequences";
 import { describe, expect, it } from "vitest";
 
+const objectMetadata = Object.entries(import.meta.glob<{ id: string; conceptId: string }>(
+  "../../objects/*/object.json", { eager: true, import: "default" },
+));
+
 const sequences = [
   ["fibonacci", bigint.fibonacci],
   ["prime", number.prime],
@@ -10,12 +14,16 @@ const sequences = [
 ] as const;
 
 describe("persisted object datasets", () => {
-  it.each(sequences)("%s stores an exact 16-term digest and 256-term standard set", async (objectId, sequence) => {
+  it.each(sequences)("%s stores an exact 16-term digest and 256-term standard set", async (conceptId, sequence) => {
+    const object = objectMetadata.find(([, entry]) => entry.conceptId === conceptId);
+    if (!object) throw new Error(`Missing object identity for ${conceptId}`);
+    const objectId = object[1].id;
+    const directory = object[0].split("/").at(-2)!;
     const standard = JSON.parse(
-      await readFile(resolve("objects", objectId, "data", "standard.json"), "utf8"),
+      await readFile(resolve("objects", directory, "data", "standard.json"), "utf8"),
     ) as { terms: string[]; format: string; objectId: string; indexOrigin: number };
     const digest = JSON.parse(
-      await readFile(resolve("objects", objectId, "data", "digest.json"), "utf8"),
+      await readFile(resolve("objects", directory, "data", "digest.json"), "utf8"),
     ) as { terms: string[]; format: string; objectId: string; indexOrigin: number };
     const expectedTerms = sequence.take(256).map(String);
 

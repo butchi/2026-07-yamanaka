@@ -4,6 +4,7 @@ import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import { resolveObjectEntries } from "@/lib/objectEntries";
+import { objectPagePath } from "@/lib/objectIdentity";
 
 const [objects, readmes, datasets] = await Promise.all([
   getCollection("objects"),
@@ -28,7 +29,7 @@ const concepts = resolveObjectEntries(objects, readmes, datasets);
   </header>
 
   <div class="catalog-list">
-    {concepts.map(({ concept, digest }) => {
+    {concepts.map(({ concept, identity, digest }) => {
       const availability = {
         number: concept.capabilities.number.map(({ operation }) => operation),
         bigint: concept.capabilities.bigint.map(({ operation }) => operation),
@@ -39,7 +40,7 @@ const concepts = resolveObjectEntries(objects, readmes, datasets);
           <div class="catalog-item__summary">
             <div>
               <p class="concept-card__english">{concept.meta.name.en}</p>
-              <h2><a href={`/numbers/${concept.id}/`}>{concept.meta.name.ja}<span aria-hidden="true"> ↗</span></a></h2>
+              <h2><a href={objectPagePath(identity)}>{concept.meta.name.ja}<span aria-hidden="true"> ↗</span></a></h2>
             </div>
             <div class="catalog-item__identifiers">
               {concept.meta.oeis?.map((oeis) => (
@@ -50,8 +51,8 @@ const concepts = resolveObjectEntries(objects, readmes, datasets);
           <p>{concept.meta.description?.ja}</p>
           <StaticSequenceList values={digest.data.terms.slice(0, 10)} />
           <p class="dataset-downloads">
-            <a href={`/objects/${concept.id}/data/digest.json`}>ダイジェストJSON（16項）</a>
-            <a href={`/objects/${concept.id}/data/standard.json`}>標準JSON（256項）</a>
+            <a href={`/objects/${identity.id}/data/digest.json`}>ダイジェストJSON（16項）</a>
+            <a href={`/objects/${identity.id}/data/standard.json`}>標準JSON（256項）</a>
           </p>
           <OperationAvailability availability={availability} />
           <div class="catalog-item__footer">
@@ -59,7 +60,7 @@ const concepts = resolveObjectEntries(objects, readmes, datasets);
               <span class="support-badge">Number対応</span>
               <span class="support-badge">BigInt対応</span>
             </p>
-            <a class="primary-link" href={`/numbers/${concept.id}/`}>{concept.meta.name.ja}の詳細へ</a>
+            <a class="primary-link" href={objectPagePath(identity)}>{concept.meta.name.ja}の詳細へ</a>
           </div>
         </article>
       );

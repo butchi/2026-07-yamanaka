@@ -11,7 +11,7 @@ export async function getStaticPaths() {
   ]);
 
   return resolveObjectEntries(objects, readmes, datasets).map((entry) => ({
-    params: { slug: entry.concept.id },
+    params: { slug: entry.identity.slug },
     props: entry,
   }));
 }

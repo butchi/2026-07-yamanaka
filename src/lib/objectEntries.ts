@@ -1,9 +1,10 @@
 import { conceptRegistry, publishedConcepts } from "./conceptRegistry";
+import { objectIdentities, type ObjectIdentity, validateObjectIdentities } from "./objectIdentity";
 
 export function resolveObjectEntries<
   DataEntry extends {
     id: string;
-    data: { conceptId: string; relatedConceptIds: readonly string[] };
+    data: { id: string; conceptId: string; relatedObjectIds: readonly string[] };
   },
   ReadmeEntry extends { id: string; body?: string },
   DatasetEntry extends {
@@ -20,34 +21,49 @@ export function resolveObjectEntries<
   dataEntries: readonly DataEntry[],
   readmes: readonly ReadmeEntry[],
   datasets: readonly DatasetEntry[],
+  identities: readonly ObjectIdentity[] = objectIdentities,
 ) {
-  const dataById = new Map(dataEntries.map((entry) => [entry.id, entry]));
+  validateObjectIdentities(identities);
+  const dataById = new Map(dataEntries.map((entry) => [entry.data.id, entry]));
   const readmesById = new Map(readmes.map((entry) => [entry.id, entry]));
   const datasetsById = new Map(datasets.map((entry) => [entry.id, entry]));
-  const publishedIds = new Set<string>(publishedConcepts);
+  const publishedIds = new Set(identities.map(({ id }) => id));
+  const identitiesById = new Map(identities.map((identity) => [identity.id, identity]));
 
-  for (const entries of [dataEntries, readmes]) {
-    const seen = new Set<string>();
-    for (const entry of entries) {
-      if (!publishedIds.has(entry.id)) {
-        throw new Error(`No calculation adapter is registered for object "${entry.id}".`);
-      }
-      if (seen.has(entry.id)) {
-        throw new Error(`Duplicate object ID "${entry.id}".`);
-      }
-      seen.add(entry.id);
+  const seenIds = new Set<string>();
+  const sourceDirectories = new Set<string>();
+  for (const entry of dataEntries) {
+    if (!publishedIds.has(entry.data.id)) {
+      throw new Error(`No identity is registered for object "${entry.data.id}".`);
     }
+    if (seenIds.has(entry.data.id) || sourceDirectories.has(entry.id)) {
+      throw new Error(`Duplicate object ID or source directory "${entry.data.id}".`);
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.id)) {
+      throw new Error(`Invalid object source directory "${entry.id}".`);
+    }
+    seenIds.add(entry.data.id);
+    sourceDirectories.add(entry.id);
+  }
+  const seenReadmes = new Set<string>();
+  for (const entry of readmes) {
+    if (!sourceDirectories.has(entry.id) || seenReadmes.has(entry.id)) {
+      throw new Error(`Unknown or duplicate object README directory "${entry.id}".`);
+    }
+    seenReadmes.add(entry.id);
   }
 
   const datasetSeenIds = new Set<string>();
   for (const dataset of datasets) {
-    const [objectId, category, format, ...extraParts] = dataset.id.split("/");
+    const [directory, category, format, ...extraParts] = dataset.id.split("/");
+    const objectId = dataset.data.objectId;
+    const source = dataById.get(objectId);
     if (
       extraParts.length > 0 ||
       !publishedIds.has(objectId) ||
       category !== "data" ||
       (format !== "digest" && format !== "standard") ||
-      dataset.data.objectId !== objectId ||
+      source?.id !== directory ||
       dataset.data.format !== format
     ) {
       throw new Error(`Invalid dataset ID or object reference "${dataset.id}".`);
@@ -67,44 +83,57 @@ export function resolveObjectEntries<
     }
   }
 
-  return publishedConcepts.map((id) => {
+  const usedConcepts = new Set<string>();
+  const entries = identities.map((identity) => {
+    const { id } = identity;
     const object = dataById.get(id);
-    const readme = readmesById.get(id);
-    const digest = datasetsById.get(`${id}/data/digest`);
-    const standard = datasetsById.get(`${id}/data/standard`);
     if (!object) {
-      throw new Error(`Object "${id}" requires objects/${id}/object.json.`);
+      throw new Error(`Object "${id}" requires an objects/<directory>/object.json with that UUID.`);
     }
+    const sourceDirectory = object.id;
+    const readme = readmesById.get(sourceDirectory);
+    const digest = datasetsById.get(`${sourceDirectory}/data/digest`);
+    const standard = datasetsById.get(`${sourceDirectory}/data/standard`);
     if (!readme?.body?.trim()) {
-      throw new Error(`Object "${id}" requires non-empty objects/${id}/README.md.`);
+      throw new Error(`Object "${id}" requires non-empty objects/${sourceDirectory}/README.md.`);
     }
     if (!digest || !standard) {
-      throw new Error(`Object "${id}" requires objects/${id}/data/digest.json and standard.json.`);
+      throw new Error(`Object "${id}" requires objects/${sourceDirectory}/data/digest.json and standard.json.`);
     }
-    if (object.data.conceptId !== id) {
-      throw new Error(`Object ID in objects/${id}/object.json must match its directory name.`);
+    const conceptId = publishedConcepts.find((candidate) => candidate === object.data.conceptId);
+    if (!conceptId || usedConcepts.has(conceptId)) {
+      throw new Error(`Invalid or duplicate calculation adapter "${object.data.conceptId}".`);
     }
+    usedConcepts.add(conceptId);
     if (digest.data.terms.some((term, index) => term !== standard.data.terms[index])) {
       throw new Error(`Digest data for object "${id}" must exactly match the prefix of standard data.`);
     }
 
     const seenRelated = new Set<string>();
-    const relatedConcepts = object.data.relatedConceptIds.map((relatedId) => {
-      const publishedId = publishedConcepts.find((candidate) => candidate === relatedId);
-      if (!publishedId || relatedId === id || seenRelated.has(relatedId)) {
-        throw new Error(`Invalid or duplicate related object "${relatedId}" in objects/${id}/object.json.`);
+    const relatedObjects = object.data.relatedObjectIds.map((relatedId) => {
+      const relatedIdentity = identitiesById.get(relatedId);
+      const relatedObject = dataById.get(relatedId);
+      const relatedConceptId = publishedConcepts.find((candidate) => candidate === relatedObject?.data.conceptId);
+      if (!relatedIdentity || !relatedConceptId || relatedId === id || seenRelated.has(relatedId)) {
+        throw new Error(`Invalid or duplicate related object "${relatedId}" in objects/${sourceDirectory}/object.json.`);
       }
       seenRelated.add(relatedId);
-      return conceptRegistry[publishedId];
+      return { identity: relatedIdentity, concept: conceptRegistry[relatedConceptId] };
     });
 
     return {
-      concept: conceptRegistry[id],
+      identity,
+      sourceDirectory,
+      concept: conceptRegistry[conceptId],
       object,
       readme,
       digest,
       standard,
-      relatedConcepts,
+      relatedObjects,
     };
   });
+  if (usedConcepts.size !== publishedConcepts.length) {
+    throw new Error("Every published calculation adapter must have an object.");
+  }
+  return entries;
 }

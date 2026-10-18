@@ -9,6 +9,16 @@ import * as fibonacciModule from "../../objects/fibonacci/functions.mjs";
 import * as primeModule from "../../objects/prime/functions.mjs";
 import * as squareModule from "../../objects/square/functions.mjs";
 
+const objectMetadata = Object.entries(import.meta.glob<{ id: string; conceptId: string }>(
+  "../../objects/*/object.json", { eager: true, import: "default" },
+));
+
+function sourceUrl(conceptId: string) {
+  const object = objectMetadata.find(([, entry]) => entry.conceptId === conceptId);
+  if (!object) throw new Error(`Missing object identity for ${conceptId}`);
+  return new URL(object[0].replace(/object\.json$/, "functions.js"), import.meta.url);
+}
+
 describe("object function modules", () => {
   for (const [id, standalone, api] of [
     ["fibonacci", fibonacciModule.number.fibonacci, numberApi.fibonacci],
@@ -17,7 +27,7 @@ describe("object function modules", () => {
   ] as const) {
     it(`${id}: runs copied source without imports or package dependencies`, async () => {
       const source = await readFile(
-        new URL(`../../objects/${id}/functions.js`, import.meta.url),
+        sourceUrl(id),
         "utf8",
       );
       expect(source).not.toMatch(/\bimport\b|\bexport\b|\brequire\b/);
@@ -67,7 +77,7 @@ describe("object function modules", () => {
     for (let round = 0; round < 2; round += 1) {
       for (const id of ["fibonacci", "prime", "square"]) {
         const source = await readFile(
-          new URL(`../../objects/${id}/functions.js`, import.meta.url),
+          sourceUrl(id),
           "utf8",
         );
         runInContext(source, context, { timeout: 1000 });

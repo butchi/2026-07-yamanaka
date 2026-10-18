@@ -1,20 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { publishedConcepts } from "./conceptRegistry";
 import { resolveObjectEntries } from "./objectEntries";
+import { objectIdentities, createObjectRedirects } from "./objectIdentity";
 
-const dataEntries = publishedConcepts.map((id) => ({
-  id,
+const [fibonacci, prime, square] = objectIdentities;
+
+const dataEntries = objectIdentities.map(({ id, slug }, index) => ({
+  id: slug,
   data: {
-    conceptId: id,
-    relatedConceptIds: publishedConcepts.filter((related) => related !== id),
+    id,
+    conceptId: publishedConcepts[index],
+    relatedObjectIds: objectIdentities.filter((related) => related.id !== id).map(({ id }) => id),
   },
 }));
-const readmes = publishedConcepts.map((id) => ({ id, body: `Definition of ${id}` }));
-const datasets = publishedConcepts.flatMap((objectId) => {
+const readmes = objectIdentities.map(({ slug }, index) => ({ id: slug, body: `Definition of ${publishedConcepts[index]}` }));
+const datasets = objectIdentities.flatMap(({ id: objectId, slug }) => {
   const terms = Array.from({ length: 256 }, (_, index) => String(index));
   return [
     {
-      id: `${objectId}/data/digest`,
+      id: `${slug}/data/digest`,
       data: {
         objectId,
         format: "digest" as const,
@@ -24,7 +28,7 @@ const datasets = publishedConcepts.flatMap((objectId) => {
       },
     },
     {
-      id: `${objectId}/data/standard`,
+      id: `${slug}/data/standard`,
       data: {
         objectId,
         format: "standard" as const,
@@ -47,62 +51,105 @@ describe("object content pairing", () => {
     expect(entries[0].readme.body).toBe("Definition of fibonacci");
     expect(entries[0].digest.data.terms).toHaveLength(16);
     expect(entries[0].standard.data.terms).toHaveLength(256);
-    expect(entries[0].relatedConcepts.map(({ id }) => id)).toEqual(["prime", "square"]);
+    expect(entries[0].relatedObjects.map(({ identity }) => identity.id)).toEqual([prime.id, square.id]);
   });
 
   it("rejects missing JSON data", () => {
-    expect(() => resolveObjectEntries(dataEntries.slice(1), readmes, datasets)).toThrow(
-      /requires objects\/fibonacci\/object.json/,
+    expect(() => resolveObjectEntries(dataEntries.slice(1), readmes.slice(1), datasets.slice(2))).toThrow(
+      /requires an objects\/<directory>\/object.json/,
     );
   });
 
   it("rejects missing or empty Markdown", () => {
     expect(() => resolveObjectEntries(dataEntries, readmes.slice(1), datasets)).toThrow(
-      /non-empty objects\/fibonacci\/README.md/,
+      "non-empty objects/fibonacci/README.md",
     );
     expect(() => resolveObjectEntries(
       dataEntries,
       [{ id: "fibonacci", body: " \n" }, ...readmes.slice(1)],
       datasets,
-    )).toThrow(/non-empty objects\/fibonacci\/README.md/);
+    )).toThrow("non-empty objects/fibonacci/README.md");
   });
 
-  it("rejects a JSON concept ID that differs from its directory name", () => {
+  it("rejects the same UUID in different directories", () => {
     expect(() => resolveObjectEntries([
-      { id: "fibonacci", data: { conceptId: "square", relatedConceptIds: [] } },
+      { id: "fibonacci", data: { id: square.id, conceptId: "fibonacci", relatedObjectIds: [] } },
       ...dataEntries.slice(1),
-    ], readmes, datasets)).toThrow(/must match its directory name/);
+    ], readmes, datasets)).toThrow(/Duplicate object ID/);
   });
 
   it("rejects unregistered objects and duplicate IDs", () => {
     expect(() => resolveObjectEntries(
       [
       ...dataEntries,
-      { id: "unknown", data: { conceptId: "unknown", relatedConceptIds: [] } },
+      { id: "unknown", data: { id: "unknown", conceptId: "unknown", relatedObjectIds: [] } },
       ],
       readmes,
       datasets,
-    )).toThrow(/No calculation adapter/);
+    )).toThrow(/No identity/);
     expect(() => resolveObjectEntries(
       dataEntries,
       [...readmes, readmes[0]],
       datasets,
-    )).toThrow(/Duplicate object ID/);
+    )).toThrow(/duplicate object README/);
   });
 
   it.each([
     ["unknown"],
-    ["fibonacci"],
-    ["prime", "prime"],
-  ])("rejects invalid related object references: %j", (...relatedConceptIds) => {
+    [fibonacci.id],
+    [prime.id, prime.id],
+  ])("rejects invalid related object references: %j", (...relatedObjectIds) => {
     expect(() => resolveObjectEntries(
       [
-        { id: "fibonacci", data: { conceptId: "fibonacci", relatedConceptIds } },
+        { id: "fibonacci", data: { id: fibonacci.id, conceptId: "fibonacci", relatedObjectIds } },
         ...dataEntries.slice(1),
       ],
       readmes,
       datasets,
     )).toThrow(/Invalid or duplicate related object/);
+  });
+
+  it("keeps UUID references and adapters stable when a slug changes", () => {
+    const renamed = objectIdentities.map((identity) => identity.id === fibonacci.id
+      ? { ...identity, slug: "fibonacci-numbers", previousSlugs: [identity.slug] }
+      : identity);
+    const entries = resolveObjectEntries(dataEntries, readmes, datasets, renamed);
+    expect(entries[0].identity.slug).toBe("fibonacci-numbers");
+    expect(entries[0].concept.id).toBe("fibonacci");
+    expect(entries[1].relatedObjects[0].identity.id).toBe(fibonacci.id);
+    expect(entries[1].relatedObjects[0].identity.slug).toBe("fibonacci-numbers");
+    expect(createObjectRedirects(renamed)[`/id/${fibonacci.id}/`]).toBe("/numbers/fibonacci-numbers/");
+    expect(createObjectRedirects(renamed)["/numbers/fibonacci/"]).toBe("/numbers/fibonacci-numbers/");
+  });
+
+  it("resolves UUID references after a source directory is renamed independently of its slug", () => {
+    const renamedObjects = dataEntries.map((entry) => entry.id === "fibonacci"
+      ? { ...entry, id: "fibonacci-numbers" } : entry);
+    const renamedReadmes = readmes.map((entry) => entry.id === "fibonacci"
+      ? { ...entry, id: "fibonacci-numbers" } : entry);
+    const renamedDatasets = datasets.map((entry) => ({
+      ...entry, id: entry.id.replace(/^fibonacci\//, "fibonacci-numbers/"),
+    }));
+    const entries = resolveObjectEntries(renamedObjects, renamedReadmes, renamedDatasets);
+    expect(entries[0].sourceDirectory).toBe("fibonacci-numbers");
+    expect(entries[0].identity).toEqual(fibonacci);
+    expect(entries[0].digest.data.objectId).toBe(fibonacci.id);
+    expect(entries[1].relatedObjects[0].identity.id).toBe(fibonacci.id);
+  });
+
+  it("rejects datasets placed under another object's directory", () => {
+    expect(() => resolveObjectEntries(dataEntries, readmes, datasets.map((entry, index) =>
+      index === 0 ? { ...entry, id: "prime/data/digest" } : entry,
+    ))).toThrow(/Invalid dataset ID/);
+  });
+
+  it("rejects unknown and duplicate calculation adapters", () => {
+    for (const conceptId of ["unknown", "prime"]) {
+      expect(() => resolveObjectEntries([
+        { ...dataEntries[0], data: { ...dataEntries[0].data, conceptId } },
+        ...dataEntries.slice(1),
+      ], readmes, datasets)).toThrow(/Invalid or duplicate calculation adapter/);
+    }
   });
 
   it("requires exact 16- and 256-term datasets with a shared prefix", () => {
