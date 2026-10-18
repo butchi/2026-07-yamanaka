@@ -23,12 +23,14 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 ドキュメントと構造化データは、TypeScriptのオブジェクトリテラルではなく標準的なファイルとして管理します。
 
 - [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`overview.md` に定義、注記、表、コード例などのGFM本文を記述します。HTML、MathML、SVGも本文に直接記述できます。
+- 各対象の `data/digest.json` は最初の16項、`data/standard.json` は最初の256項を正確な整数データとして保存します。各値はJSONの安全整数制限を避ける10進整数文字列で、添字の原点も明記します。サイトはこれらのスナップショットをそのまま表示・配信し、ビルド時の `take()` で生成しません。
+- 各対象の `functions.mjs` は、公開ライブラリの `number.<object>` / `bigint.<object>` 名前空間をそのままエクスポートするES moduleです。元のAPIのimport元を対象モジュールへ差し替えて使える互換ファサードとして、ソースとダウンロード可能なモジュールを保持します。アルゴリズム本体は引き続き `@butchi/integer-sequences` が所有します。
 - [`src/content.config.ts`](./src/content.config.ts) — Astro Content Layerの読み込み先と検証スキーマ。
 - [`src/layouts/ObjectLayout.astro`](./src/layouts/ObjectLayout.astro) — MarkdownとJSONを計算・表示機能に接続する共通レイアウト。
 
 例えば、フィボナッチ数の説明は [`objects/fibonacci/overview.md`](./objects/fibonacci/overview.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownの空のフロントマターは追加メタデータを持たせないためのもので、SEOなどはJSONに集約しています。
 
-同じディレクトリ内の `object.json` と `overview.md` を必ず組にし、ディレクトリ名を項目IDとします。JSONはビルド時にスキーマで検証し、IDの不一致、本文の欠落、未登録・自己参照・重複した関連項目もエラーにします。読み込み対象はこの二つのファイル名に限定するため、対象固有の `data/first-100.json` や補足文書を置いても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
+同じディレクトリ内の `object.json` と `overview.md` を必ず組にし、ディレクトリ名を項目IDとします。データセットは正確に16項・256項であること、十進整数文字列の形式、オブジェクトID、添字原点、およびダイジェストが標準データの先頭と一致することを検証します。読み込み対象は `object.json`、`overview.md`、`data/digest.json`、`data/standard.json` に限定するため、対象固有の補助データや補足文書を追加しても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
 
 ### 配置の原則：一緒に編集するものを近くに置く
 
@@ -39,7 +41,9 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 現段階では共有関数・共有文書の登録／参照スキーマや依存先に応じたCI実行は未実装です。実在しない関数や実装例は登録せず、計算には引き続き公開ライブラリを使います。
 
-新しい種類の計算を追加する場合は、別途ライブラリの実装と `src/lib/conceptRegistry.ts` の接続が必要です。最初の20項や利用可能な関数は引き続き実ライブラリから生成し、JSONに同じ値を重複して手入力しません。Expression JSONやMathJSONの専用評価器は現時点では実装していません。
+新しい種類の計算を追加する場合は、別途ライブラリの実装と `src/lib/conceptRegistry.ts` の接続が必要です。データスナップショットはAPIの実行結果からビルドごとに生成せず、対象ディレクトリに保存したレビュー可能なJSONを正とします。Expression JSONやMathJSONの専用評価器は現時点では実装していません。
+
+保存データは `/objects/fibonacci/data/digest.json`、`/objects/fibonacci/data/standard.json` として、ES moduleは `/objects/fibonacci/functions.mjs` としてサイトからも取得できます。
 
 ## データ・関数と整数列ライブラリ
 
@@ -51,6 +55,16 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 ```
 
 NumberとBigIntの明示的な選択、入力境界の検証、JSON・CSV・JavaScript形式の出力など、現行ビューアの再利用機能を引き継いでいます。具体的な表示上限は `src/lib/uiLimits.ts` に定義されています。
+
+```text
+objects/fibonacci/
+├─ object.json
+├─ overview.md
+├─ functions.mjs
+└─ data/
+   ├─ digest.json       # 最初の16項
+   └─ standard.json     # 最初の256項
+```
 
 ## 投稿と今後の構想
 
@@ -90,13 +104,21 @@ pnpm test:e2e
 objects/
 ├─ fibonacci/
 │  ├─ object.json         項目ID・SEO・関連項目
-│  └─ overview.md         解説本文（GFM・HTML・MathML・SVG）
+│  ├─ overview.md         解説本文（GFM・HTML・MathML・SVG）
+│  ├─ functions.mjs       API互換のJavaScript ES module
+│  └─ data/
+│     ├─ digest.json      最初の16項（正確な整数文字列）
+│     └─ standard.json    最初の256項（正確な整数文字列）
 ├─ prime/
 │  ├─ object.json
-│  └─ overview.md
+│  ├─ overview.md
+│  ├─ functions.mjs
+│  └─ data/
 └─ square/
    ├─ object.json
-   └─ overview.md
+   ├─ overview.md
+   ├─ functions.mjs
+   └─ data/
 src/
 ├─ content.config.ts     コンテンツの読み込み・スキーマ検証
 ├─ components/           Astroコンポーネントと操作UI

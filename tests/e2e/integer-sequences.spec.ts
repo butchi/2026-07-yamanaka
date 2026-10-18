@@ -60,7 +60,7 @@ test("数列の詳細ページでデータ・ドキュメント・関数を確�
   await page.goto(fibonacciPath);
 
   await expect(
-    page.getByRole("heading", { level: 2, name: /データ.*最初の20項/ }),
+    page.getByRole("heading", { level: 2, name: /データ.*ダイジェスト16項/ }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 2, name: /ドキュメント.*定義と性質/ }),
@@ -68,6 +68,42 @@ test("数列の詳細ページでデータ・ドキュメント・関数を確�
   await expect(
     page.getByRole("heading", { level: 2, name: /関数.*利用可能な操作/ }),
   ).toBeVisible();
+  await expect(
+    page.locator('[aria-labelledby="first-terms-heading"] [data-testid="static-sequence-list"] li'),
+  ).toHaveCount(16);
+  await expect(page.getByRole("link", { name: /標準JSON（256項）/ })).toHaveAttribute(
+    "href",
+    "/objects/fibonacci/data/standard.json",
+  );
+});
+
+test("保存済み標準JSONは正確な256項を配信する", async ({ request }) => {
+  const response = await request.get("/objects/fibonacci/data/standard.json");
+  expect(response.ok()).toBeTruthy();
+  const data = await response.json();
+  expect(data).toMatchObject({
+    objectId: "fibonacci",
+    format: "standard",
+    indexOrigin: 0,
+    valueEncoding: "base10-integer-string",
+  });
+  expect(data.terms).toHaveLength(256);
+  expect(data.terms.slice(0, 16)).toEqual([
+    "0", "1", "1", "2", "3", "5", "8", "13",
+    "21", "34", "55", "89", "144", "233", "377", "610",
+  ]);
+});
+
+test("対象関数をAPI互換のJavaScriptモジュールとして取得できる", async ({
+  request,
+}) => {
+  const response = await request.get("/objects/fibonacci/functions.mjs");
+  expect(response.ok()).toBeTruthy();
+  expect(response.headers()["content-type"]).toContain("text/javascript");
+  const moduleSource = await response.text();
+  expect(moduleSource).toContain('from "@butchi/integer-sequences"');
+  expect(moduleSource).toContain("export const number");
+  expect(moduleSource).toContain("export const bigint");
 });
 
 test("Markdownの本文・GFM表・MathML・コード例を表示できる", async ({ page }) => {
@@ -213,7 +249,7 @@ test("JavaScript無効時にも静的一覧と説明を読める", async ({ brow
     await expect(
       page.locator("main p").filter({ hasText: /フィボナッチ数/ }).first(),
     ).toBeVisible();
-    await expect(page.getByTestId("static-sequence-list")).toContainText(
+    await expect(page.getByTestId("static-sequence-list").first()).toContainText(
       /0[\s,、]+1[\s,、]+1[\s,、]+2[\s,、]+3[\s,、]+5/,
     );
   } finally {

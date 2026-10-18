@@ -2,9 +2,15 @@
 import OperationAvailability from "@/components/concept/OperationAvailability.astro";
 import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import { conceptRegistry, publishedConcepts } from "@/lib/conceptRegistry";
+import { getCollection } from "astro:content";
+import { resolveObjectEntries } from "@/lib/objectEntries";
 
-const concepts = publishedConcepts.map((id) => conceptRegistry[id]);
+const [objects, documents, datasets] = await Promise.all([
+  getCollection("objects"),
+  getCollection("documents"),
+  getCollection("datasets"),
+]);
+const concepts = resolveObjectEntries(objects, documents, datasets);
 ---
 
 <BaseLayout
@@ -22,7 +28,7 @@ const concepts = publishedConcepts.map((id) => conceptRegistry[id]);
   </header>
 
   <div class="catalog-list">
-    {concepts.map((concept) => {
+    {concepts.map(({ concept, digest }) => {
       const availability = {
         number: concept.capabilities.number.map(({ operation }) => operation),
         bigint: concept.capabilities.bigint.map(({ operation }) => operation),
@@ -42,7 +48,11 @@ const concepts = publishedConcepts.map((id) => conceptRegistry[id]);
             </div>
           </div>
           <p>{concept.meta.description?.ja}</p>
-          <StaticSequenceList values={concept.staticTerms.slice(0, 10)} />
+          <StaticSequenceList values={digest.data.terms.slice(0, 10)} />
+          <p class="dataset-downloads">
+            <a href={`/objects/${concept.id}/data/digest.json`}>ダイジェストJSON（16項）</a>
+            <a href={`/objects/${concept.id}/data/standard.json`}>標準JSON（256項）</a>
+          </p>
           <OperationAvailability availability={availability} />
           <div class="catalog-item__footer">
             <p>

@@ -335,6 +335,13 @@ a:hover {
   gap: 0.15rem;
 }
 
+.dataset-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+
 .sequence-strip code {
   padding: 0;
   background: transparent;

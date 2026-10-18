@@ -1,0 +1,24 @@
+{
+  "objectId": "square",
+  "format": "digest",
+  "indexOrigin": 0,
+  "valueEncoding": "base10-integer-string",
+  "terms": [
+    "0",
+    "1",
+    "4",
+    "9",
+    "16",
+    "25",
+    "36",
+    "49",
+    "64",
+    "81",
+    "100",
+    "121",
+    "144",
+    "169",
+    "196",
+    "225"
+  ]
+}

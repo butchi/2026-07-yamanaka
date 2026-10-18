@@ -31,4 +31,28 @@ const objects = defineCollection({
   }).strict(),
 });
 
-export const collections = { documents, objects };
+const datasets = defineCollection({
+  loader: glob({
+    pattern: "*/data/*.json",
+    base: "./objects",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ""),
+  }),
+  schema: z.object({
+    objectId: z.string().min(1),
+    format: z.enum(["digest", "standard"]),
+    indexOrigin: z.number().int(),
+    valueEncoding: z.literal("base10-integer-string"),
+    terms: z.array(z.string().regex(/^-?(0|[1-9]\d*)$/)),
+  }).strict().superRefine((dataset, context) => {
+    const expectedCount = dataset.format === "digest" ? 16 : 256;
+    if (dataset.terms.length !== expectedCount) {
+      context.addIssue({
+        code: "custom",
+        message: `${dataset.format} data must contain exactly ${expectedCount} terms.`,
+        path: ["terms"],
+      });
+    }
+  }),
+});
+
+export const collections = { documents, objects, datasets };

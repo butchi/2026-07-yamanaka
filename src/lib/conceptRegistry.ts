@@ -62,8 +62,6 @@ export type ConceptRegistryEntry<
     readonly number: readonly OperationCapability[];
     readonly bigint: readonly OperationCapability[];
   };
-  /** The first 20 Number terms, evaluated once during the static build. */
-  readonly staticTerms: readonly number[];
 };
 
 const libraryConcepts = {
@@ -151,26 +149,6 @@ export function discoverUiOperations(
   });
 }
 
-function takeStaticTerms(concept: RuntimeNumericConcept): readonly number[] {
-  const take = concept.take;
-
-  if (concept.operations.take === undefined || typeof take !== "function") {
-    throw new Error("A published concept must expose Number take(count).");
-  }
-
-  const values: unknown = take(20);
-
-  if (
-    !Array.isArray(values) ||
-    values.length !== 20 ||
-    values.some((value) => typeof value !== "number")
-  ) {
-    throw new Error("Number take(20) returned an invalid static sequence.");
-  }
-
-  return Object.freeze([...values]);
-}
-
 function createRegistryEntry<Id extends PublishedConceptId>(
   id: Id,
   concepts: {
@@ -193,7 +171,6 @@ function createRegistryEntry<Id extends PublishedConceptId>(
       number: discoverUiOperations(concepts.number),
       bigint: discoverUiOperations(concepts.bigint),
     },
-    staticTerms: takeStaticTerms(concepts.number),
   };
 }
 
