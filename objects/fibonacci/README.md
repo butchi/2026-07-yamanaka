@@ -10,7 +10,7 @@ $$
 
 - 数列としては1が2回現れますが、集合として所属を考えるときは同じ値を重複して数えません。
 - `take(n)` は先頭からn項を返し、`upTo(limit)` は値がlimit以下の項を返します。
-- `range(100).map(number.fibonacci.term)` は、$F_{79}$ が安全整数範囲を超えるため途中で `IntegerOverflowError` になります。Number版では `range(79)` までにするか、必要な範囲を検討したうえでBigInt版を選んでください。
+- `range(100).map(number.fibonacci.term)` は、$`F_{79}`$ が安全整数範囲を超えるため途中で `IntegerOverflowError` になります。Number版では `range(79)` までにするか、必要な範囲を検討したうえでBigInt版を選んでください。
 
 ## 数値型と精度
 
@@ -23,7 +23,7 @@ $$
 
 ### フィボナッチ素数を抽出する
 
-Number版で正確に扱える最初の79項から、素数でもあるフィボナッチ数を抽出します。`range(100)` は $F_{79}$ で範囲外になるため、実行可能な範囲を使います。
+Number版で正確に扱える最初の79項から、素数でもあるフィボナッチ数を抽出します。`range(100)` は $`F_{79}`$ で範囲外になるため、実行可能な範囲を使います。
 
 ```javascript
 import { number, range } from "@butchi/integer-sequences";

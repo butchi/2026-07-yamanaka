@@ -37,7 +37,7 @@ const primesAfterSquares = number.square
 
 ### ソフィー・ジェルマン素数を探す
 
-素数 $p$ のうち、$2p + 1$ も素数になるものを最初の100個の素数から探します。
+素数 $`p`$ のうち、$`2p + 1`$ も素数になるものを最初の100個の素数から探します。
 
 ```javascript
 import { number } from "@butchi/integer-sequences";

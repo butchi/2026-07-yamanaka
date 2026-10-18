@@ -42,7 +42,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 ### 記事中の数式
 
-数式はMathMLを直接書かず、インライン数式は `$n^2$`、独立した数式は次のように `$$` で囲んだLaTeXで記述します。
+数式はMathMLを直接書かず、インライン数式は `` $`n^2`$ ``、独立した数式は次のように `$$` で囲んだLaTeXで記述します。インライン数式は、Markdownとの解釈の衝突を避けるため、[GitHub公式のバッククォート併用記法](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions#writing-inline-expressions)に統一します。サイトでは通常の `$n^2$` も引き続き描画できます。
 
 ```text
 $$

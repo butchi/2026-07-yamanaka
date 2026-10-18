@@ -8,6 +8,14 @@ const renderer = await satteri({
 }).createRenderer({ syntaxHighlight: false });
 
 describe("LaTeX math rendering", () => {
+  it("renders GitHub backtick-delimited inline math alongside code", async () => {
+    const result = await renderer.render("`range(79)` は $`F_{79}`$ まで。");
+    expect(result.code).toContain("<code>range(79)</code>");
+    expect(result.code).toContain('encoding="application/x-tex">F_{79}</annotation>');
+    expect(result.code).not.toContain("`F");
+    expect(result.code.match(/<p>/g)).toHaveLength(1);
+  });
+
   it("renders inline and display math at build time", async () => {
     const result = await renderer.render("Inline $n^2$.\n\n$$\nF_n = F_{n-1} + F_{n-2}\n$$\n");
     expect(result.code).toContain('class="katex"');
@@ -26,5 +34,6 @@ describe("LaTeX math rendering", () => {
 
   it("fails explicitly on invalid LaTeX", async () => {
     await expect(renderer.render("$\\invalidcommand$")).rejects.toThrow();
+    await expect(renderer.render("$`\\invalidcommand`$")).rejects.toThrow();
   });
 });
