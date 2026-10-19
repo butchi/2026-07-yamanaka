@@ -97,6 +97,20 @@ test("保存済み標準JSONは正確な256項を配信する", async ({ request
   ]);
 });
 
+test("保存済みダイジェストJSONはコンパクトな数値で先頭16項を配信する", async ({ request }) => {
+  const response = await request.get(`/objects/${fibonacciId}/data/digest.json`);
+  expect(response.ok()).toBeTruthy();
+  const data = await response.json();
+  expect(data).toMatchObject({
+    objectId: fibonacciId,
+    format: "digest",
+    indexOrigin: 0,
+  });
+  expect(data).not.toHaveProperty("valueEncoding");
+  expect(data.terms).toHaveLength(16);
+  expect(data.terms).toEqual([0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610]);
+});
+
 test("対象関数をAPI互換のJavaScriptモジュールとして取得できる", async ({
   request,
 }) => {
@@ -133,7 +147,7 @@ test("コピーした実装をコンソール相当の通常スクリプトと�
       (0, eval)(`${await navigator.clipboard.readText()}\nlibra.number.${objectId}.take(16).map(String);`),
     slug);
     const digest = await page.request.get(`/objects/${id}/data/digest.json`);
-    expect(values).toEqual((await digest.json()).terms);
+    expect(values.map(String)).toEqual((await digest.json()).terms.map(String));
   }
   const results = await page.evaluate((scripts) => {
     for (let round = 0; round < 2; round += 1) {

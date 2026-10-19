@@ -86,7 +86,7 @@ const orderDescription = meta.order === "strictly-increasing"
   : meta.order === "nondecreasing"
     ? t("Nondecreasing; repeated values may occur", "同じ値を含む場合があり、値が減少しない列")
     : t("No increasing order is assumed", "一定の増加順序を仮定しない列");
-const includesZero = digest.data.terms.includes("0");
+const includesZero = digest.data.terms.some((term) => String(term) === "0");
 ---
 
 <BaseLayout
@@ -133,7 +133,7 @@ const includesZero = digest.data.terms.includes("0");
           <p class="eyebrow">DATA / DIGEST</p>
           <h2 id="first-terms-heading">{t("Data — 16-term digest", "データ — ダイジェスト16項")}</h2>
         </div>
-        <p class="text-muted">{t("Persisted exact integers (decimal strings, zero-based indices)", "保存済みの正確な整数データ（10進文字列・添字0始まり）")}</p>
+        <p class="text-muted">{t("Compact JSON-number digest and exact decimal-string standard data (zero-based indices)", "コンパクトなJSON数値のダイジェストと正確な10進文字列の標準データ（添字0始まり）")}</p>
       </div>
       <StaticSequenceList values={[...digest.data.terms]} />
       <p class="dataset-links">

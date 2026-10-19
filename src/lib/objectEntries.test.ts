@@ -23,8 +23,7 @@ const datasets = objectIdentities.flatMap(({ id: objectId, slug }) => {
         objectId,
         format: "digest" as const,
         indexOrigin: 0,
-        valueEncoding: "base10-integer-string" as const,
-        terms: terms.slice(0, 16),
+        terms: terms.slice(0, 16).map(Number),
       },
     },
     {
@@ -171,21 +170,32 @@ describe("object content pairing", () => {
     expect(() => resolveObjectEntries(dataEntries, readmes, datasets.slice(2))).toThrow(
       /data\/digest.json/,
     );
-    const shortDigest = datasets.map((dataset, index) =>
-      index === 0
+    const shortDigest = datasets.map((dataset) =>
+      dataset.data.format === "digest"
         ? { ...dataset, data: { ...dataset.data, terms: dataset.data.terms.slice(1) } }
         : dataset,
     );
     expect(() => resolveObjectEntries(dataEntries, readmes, shortDigest)).toThrow(
       /Invalid digest dataset/,
     );
-    const mismatchedPrefix = datasets.map((dataset, index) =>
-      index === 1
+    const mismatchedPrefix = datasets.map((dataset) =>
+      dataset.data.format === "standard"
         ? { ...dataset, data: { ...dataset.data, terms: ["999", ...dataset.data.terms.slice(1)] } }
         : dataset,
     );
     expect(() => resolveObjectEntries(dataEntries, readmes, mismatchedPrefix)).toThrow(
       /prefix of standard data/,
+    );
+  });
+
+  it("rejects digest terms that cannot be represented exactly as JSON numbers", () => {
+    const unsafeDigest = datasets.map((dataset) =>
+      dataset.data.format === "digest"
+        ? { ...dataset, data: { ...dataset.data, terms: [Number.MAX_SAFE_INTEGER + 1, ...dataset.data.terms.slice(1)] } }
+        : dataset,
+    );
+    expect(() => resolveObjectEntries(dataEntries, readmes, unsafeDigest)).toThrow(
+      /Invalid digest dataset/,
     );
   });
 });

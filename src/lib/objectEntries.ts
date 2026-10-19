@@ -27,13 +27,20 @@ export function resolveObjectEntries<
   ReadmeEntry extends { id: string; body?: string },
   DatasetEntry extends {
     id: string;
-    data: {
-      objectId: string;
-      format: "digest" | "standard";
-      indexOrigin: number;
-      valueEncoding: "base10-integer-string";
-      terms: readonly string[];
-    };
+    data:
+      | {
+          objectId: string;
+          format: "digest";
+          indexOrigin: number;
+          terms: readonly number[];
+        }
+      | {
+          objectId: string;
+          format: "standard";
+          indexOrigin: number;
+          valueEncoding: "base10-integer-string";
+          terms: readonly string[];
+        };
   },
 >(
   dataEntries: readonly DataEntry[],
@@ -92,12 +99,11 @@ export function resolveObjectEntries<
     }
     datasetSeenIds.add(dataset.id);
     const expectedCount = format === "digest" ? 16 : 256;
-    if (
-      dataset.data.indexOrigin !== 0 ||
-      dataset.data.valueEncoding !== "base10-integer-string" ||
-      dataset.data.terms.length !== expectedCount ||
-      dataset.data.terms.some((term) => !/^-?(0|[1-9]\d*)$/.test(term))
-    ) {
+    const validTerms = dataset.data.format === "digest"
+      ? dataset.data.terms.every((term) => Number.isSafeInteger(term))
+      : dataset.data.terms.every((term) => typeof term === "string" && /^-?(0|[1-9]\d*)$/.test(term));
+    const validEncoding = dataset.data.format === "digest" || dataset.data.valueEncoding === "base10-integer-string";
+    if (dataset.data.indexOrigin !== 0 || !validEncoding || dataset.data.terms.length !== expectedCount || !validTerms) {
       throw new Error(`Invalid ${format} dataset for object "${objectId}".`);
     }
   }
@@ -131,7 +137,7 @@ export function resolveObjectEntries<
       throw new Error(`Invalid or duplicate calculation adapter "${object.data.conceptId}".`);
     }
     usedConcepts.add(conceptId);
-    if (digest.data.terms.some((term, index) => term !== standard.data.terms[index])) {
+    if (digest.data.terms.some((term, index) => String(term) !== standard.data.terms[index])) {
       throw new Error(`Digest data for object "${id}" must exactly match the prefix of standard data.`);
     }
 

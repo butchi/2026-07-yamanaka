@@ -92,7 +92,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 ドキュメントと構造化データは、TypeScriptのオブジェクトリテラルではなく標準的なファイルとして管理します。
 
 - [`objects/`](./objects/) — 対象別のディレクトリ。各対象の `object.json` に項目ID、SEO情報、関連項目、任意のブログ参照を、`README.md` に定義、注記、表、コード例などのGFM本文を記述します。記事中の数式にはLaTeX記法を使います。図などには必要に応じてHTML・SVGを利用できます。
-- 各対象の `data/digest.json` は最初の16項、`data/standard.json` は最初の256項を正確な整数データとして保存します。各値はJSONの安全整数制限を避ける10進整数文字列で、添字の原点も明記します。サイトはこれらのスナップショットをそのまま表示・配信し、ビルド時の `take()` で生成しません。
+- 各対象の `data/digest.json` は最初の16項をJSON数値でコンパクトに表し、`data/standard.json` は最初の256項を10進整数文字列で正確に保存します。ダイジェストの数値はJavaScriptの安全整数範囲内に限り、範囲を超える値が必要な場合は文字列で近似せず、表現形式を別途設計します。両ファイルに添字の原点を明記します。サイトはこれらのスナップショットをそのまま表示・配信し、ビルド時の `take()` で生成しません。
 - 各対象の `functions.source.js` が投稿者向けの唯一の実装ソースです。ES moduleとして `number` と `bigint` をエクスポートし、公開ライブラリと共通の関数名・引数・戻り値で実装します。外部パッケージやサイト固有の登録処理は不要です。ビルド時に、デベロッパーツールへ貼り付けられ `globalThis.libra.number.<object>` / `globalThis.libra.bigint.<object>` に登録する `functions.js` と、単体でインポートできる `functions.mjs` を生成します。生成物はリポジトリにコミットしません。グローバル版は複数対象への併用と同じ実装の再貼り付けが可能で、補助関数は外部に公開されません。ライブラリ固有の操作メタデータや例外クラスは含まず、不正入力やNumberの安全整数範囲外の結果は標準の `TypeError` / `RangeError` で通知します。
 - [`src/content.config.ts`](./src/content.config.ts) — Astro Content Layerの読み込み先と検証スキーマ。
 - [`src/layouts/ObjectLayout.astro`](./src/layouts/ObjectLayout.astro) — MarkdownとJSONを計算・表示機能に接続する共通レイアウト。
@@ -168,7 +168,7 @@ pnpm object:create --slug triangular --name "Triangular numbers" --description "
 
 1. 定義、添字、値の出典を項目の `README.md` に記載します。外部のデータを利用する場合は、利用条件も確認してください。
 2. 項目ディレクトリの `data/standard.json` に先頭256項、`data/digest.json` に同じ列の先頭16項を保存します。[平方数のダイジェスト](./objects/square/data/digest.json)を形式の見本にできますが、UUIDや値は流用しません。
-3. 両ファイルに、項目の `object.json` の `id` と同じ `objectId`、それぞれの `format`（`standard` / `digest`）、`indexOrigin: 0`、`valueEncoding: "base10-integer-string"` を設定します。現在の公開用検証は添字原点0のみを受け付けます。他の原点が必要な場合は検証・計算APIも含めて別途対応し、無断で添字の意味を変えないでください。
+3. 両ファイルに、項目の `object.json` の `id` と同じ `objectId`、それぞれの `format`（`standard` / `digest`）、`indexOrigin: 0` を設定します。`digest.json` の16項は安全整数範囲内のJSON数値、`standard.json` の256項は `valueEncoding: "base10-integer-string"` を指定した十進整数文字列にします。現在の公開用検証は添字原点0のみを受け付けます。他の原点が必要な場合は検証・計算APIも含めて別途対応し、無断で添字の意味を変えないでください。
 4. `terms` の各値は、丸めのない十進整数文字列として記述します。数値型のJSON、指数表記、先頭の `+`、不要な先頭ゼロは使いません。例：`"0"`、`"-3"`、`"9007199254740993"`。
 5. 項の順序と重複を保持し、ダイジェストが標準データの先頭16項と完全一致することを確認します。
 
@@ -300,8 +300,8 @@ objects/fibonacci/
 ├─ README.md
 ├─ functions.source.js
 └─ data/
-   ├─ digest.json       # 最初の16項
-   └─ standard.json     # 最初の256項
+   ├─ digest.json       # 最初の16項（安全なJSON整数）
+   └─ standard.json     # 最初の256項（正確な整数文字列）
 ```
 
 ## 投稿と今後の構想
@@ -352,7 +352,7 @@ objects/
 │  ├─ README.ja.md        任意の日本語訳（日本語SEOとセット）
 │  ├─ functions.source.js 投稿者が編集する実装ソース
 │  └─ data/
-│     ├─ digest.json      最初の16項（正確な整数文字列）
+│     ├─ digest.json      最初の16項（安全なJSON整数）
 │     └─ standard.json    最初の256項（正確な整数文字列）
 ├─ prime/                素数
 │  ├─ object.json
