@@ -34,7 +34,8 @@ export function resolveDataObjectEntries<
   const dataObjectReadmes = readmes.filter(({ id }) => dataObjectDirectories.has(id.replace(/\/ja$/, "")));
   const readmesById = new Map(dataObjectReadmes.map((entry) => [entry.id, entry]));
   const contentDatasets = datasets.filter(
-    (dataset): dataset is JsonObjectDataset => dataset.data.format === "json",
+    (dataset): dataset is JsonObjectDataset =>
+      dataset.data.format === "json" || dataset.data.format === "matrix",
   );
   const datasetsById = new Map(contentDatasets.map((entry) => [entry.id, entry]));
 
@@ -97,8 +98,8 @@ export function resolveDataObjectEntries<
     if (japaneseReadme && !japaneseReadme.body?.trim()) {
       throw new Error(`Japanese README must not be empty for data object "${directory}".`);
     }
-    if (!content || content.data.objectId !== identity.id || content.data.format !== "json") {
-      throw new Error(`Data object "${directory}" requires data/content.json with a JSON value.`);
+    if (!content || content.data.objectId !== identity.id) {
+      throw new Error(`Data object "${directory}" requires data/content.json with a valid JSON dataset.`);
     }
     const seenRelated = new Set<string>();
     const relatedObjects = (object.data.relatedObjectIds ?? []).map((relatedId) => {

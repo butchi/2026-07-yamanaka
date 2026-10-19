@@ -16,7 +16,7 @@ interface Props {
 
 const { object, identity, readme, japaneseReadme, content, relatedObjects } = Astro.props;
 const data = object.data;
-if (data.type !== "data-object") throw new Error(`Object "${identity.id}" is not a JSON data object.`);
+if (data.type !== "data-object") throw new Error(`Object "${identity.id}" is not a data object.`);
 const locale = localeFromPath(Astro.url.pathname);
 const t = (en: string, ja: string) => text(locale, en, ja);
 const seo = locale === "ja" ? data.translations?.ja?.seo : data.seo;
@@ -24,6 +24,8 @@ if (!seo) throw new Error(`Missing ${locale} SEO for data object "${identity.id}
 const selectedReadme = locale === "ja" ? japaneseReadme : readme;
 if (!selectedReadme) throw new Error(`Missing ${locale} README for data object "${identity.id}".`);
 const { Content } = await render(selectedReadme);
+const matrixData = content.data.format === "matrix" ? content.data : undefined;
+const jsonData = content.data.format === "json" ? JSON.stringify(content.data.value, null, 2) : undefined;
 ---
 
 <BaseLayout
@@ -47,9 +49,34 @@ const { Content } = await render(selectedReadme);
     </header>
 
     <section class="page-section sequence-first" aria-labelledby="data-heading">
-      <p class="eyebrow">DATA / JSON</p>
-      <h2 id="data-heading">{t("Structured data", "構造化データ")}</h2>
-      <pre><code>{JSON.stringify(content.data.value, null, 2)}</code></pre>
+      <p class="eyebrow">DATA / {matrixData ? "MATRIX" : "JSON"}</p>
+      <h2 id="data-heading">{matrixData ? t("Matrix data", "行列データ") : t("Structured data", "構造化データ")}</h2>
+      {matrixData ? (
+        <div class="table-scroll" role="region" aria-label={t("Data matrix", "データ行列")} tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{t("Row / column", "行 / 列")}</th>
+                {matrixData.values[0].map((_, index) => (
+                  <th scope="col">{matrixData.columnIndexOrigin + index}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {matrixData.values.map((row, rowIndex) => (
+                <tr>
+                  <th scope="row">{matrixData.rowIndexOrigin + rowIndex}</th>
+                  {row.map((cell) => (
+                    <td>{typeof cell === "string" ? cell : JSON.stringify(cell)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <pre><code>{jsonData}</code></pre>
+      )}
       <p class="dataset-links">
         <a href={`/objects/${identity.id}/data/content.json`} target="_blank" rel="noopener">
           {t("JSON data", "JSONデータ")}

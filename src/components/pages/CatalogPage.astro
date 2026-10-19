@@ -119,12 +119,17 @@ const dataObjectEntries = resolveDataObjectEntries(objects, readmes, datasets);
             <span class="support-badge">{t("JSON data", "JSONデータ")}</span>
           </div>
           <p>{object.data.translations?.ja?.seo.description && locale === "ja" ? object.data.translations.ja.seo.description : object.data.seo.description}</p>
-          <pre><code>{JSON.stringify(content.data.value)}</code></pre>
+          {content.data.format === "matrix" ? (
+            <p>{t(
+              `${content.data.values.length} × ${content.data.values[0].length} matrix excerpt`,
+              `行列データ（${content.data.values.length} × ${content.data.values[0].length}項の抜粋）`,
+            )}</p>
+          ) : <pre><code>{JSON.stringify(content.data.value)}</code></pre>}
           <p class="dataset-links">
             <a href={`/objects/${identity.id}/data/content.json`} target="_blank" rel="noopener">{t("JSON data", "JSONデータ")}</a>
           </p>
           <div class="catalog-item__footer">
-            <p><span class="support-badge">{t("Arbitrary JSON value", "任意のJSON値")}</span></p>
+            <p><span class="support-badge">{content.data.format === "matrix" ? t("Matrix", "行列") : t("Arbitrary JSON value", "任意のJSON値")}</span></p>
             <a class="primary-link" href={target}>{locale === "ja" && !japaneseReadme ? "日本語版は未提供・英語版を見る" : t(`Explore ${object.data.name.en}`, `${object.data.name.ja}の詳細へ`)}</a>
           </div>
         </article>

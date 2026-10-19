@@ -28,5 +28,11 @@
     "slug": "fibonacci-words",
     "type": "data-object",
     "previousSlugs": []
+  },
+  {
+    "id": "01a15005-fe79-7ac4-bfaf-8b8e82577005",
+    "slug": "wythoff-array",
+    "type": "data-object",
+    "previousSlugs": []
   }
 ]

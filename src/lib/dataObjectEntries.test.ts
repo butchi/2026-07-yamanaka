@@ -25,6 +25,16 @@ const content = (value: JsonValue) => ({
   id: `${identity.slug}/data/content`,
   data: { objectId: identity.id, format: "json" as const, value },
 });
+const matrix = (values: JsonValue[][]) => ({
+  id: `${identity.slug}/data/content`,
+  data: {
+    objectId: identity.id,
+    format: "matrix" as const,
+    rowIndexOrigin: 1,
+    columnIndexOrigin: 1,
+    values,
+  },
+});
 
 describe("generic JSON data objects", () => {
   it.each([
@@ -34,7 +44,7 @@ describe("generic JSON data objects", () => {
     ["object", { words: ["0", "01", "010"], indexOrigin: 0 }],
   ])("accepts a JSON %s value", (_label, value) => {
     const [entry] = resolveDataObjectEntries(objects, readmes, [content(value)], [identity]);
-    expect(entry.content.data.value).toEqual(value);
+    expect(entry.content.data).toMatchObject({ format: "json", value });
     expect(entry.identity).toEqual(identity);
   });
 
@@ -52,6 +62,18 @@ describe("generic JSON data objects", () => {
     expect(entry.content.id).toBe("fibonacci-words/data/content");
     expect(() => resolveDataObjectEntries(localized, readmes, [content("010")], [identity]))
       .toThrow(/Japanese README and SEO/);
+  });
+
+  it("preserves matrix rows, columns and their index origins", () => {
+    const values = [[1, 2], [3, 5]];
+    const [entry] = resolveDataObjectEntries(objects, readmes, [matrix(values)], [identity]);
+    expect(entry.content.data).toEqual({
+      objectId: identity.id,
+      format: "matrix",
+      rowIndexOrigin: 1,
+      columnIndexOrigin: 1,
+      values,
+    });
   });
 
   it("rejects missing data, invalid dataset paths and unrelated identities", () => {

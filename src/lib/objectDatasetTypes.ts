@@ -48,11 +48,19 @@ export type JsonValue = null | boolean | number | string | JsonValue[] | { [key:
 
 export type JsonObjectDataset = {
   id: string;
-  data: {
-    objectId: string;
-    format: "json";
-    value: JsonValue;
-  };
+  data:
+    | {
+        objectId: string;
+        format: "json";
+        value: JsonValue;
+      }
+    | {
+        objectId: string;
+        format: "matrix";
+        rowIndexOrigin: number;
+        columnIndexOrigin: number;
+        values: readonly (readonly JsonValue[])[];
+      };
 };
 
 export type ObjectDatasetEntry = {

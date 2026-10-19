@@ -136,6 +136,31 @@ const datasets = defineCollection({
       format: z.literal("json"),
       value: z.json(),
     }).strict(),
+    z.object({
+      objectId,
+      format: z.literal("matrix"),
+      rowIndexOrigin: z.number().int(),
+      columnIndexOrigin: z.number().int(),
+      values: z.array(z.array(z.json())).min(1),
+    }).strict().superRefine((dataset, context) => {
+      const columnCount = dataset.values[0]?.length ?? 0;
+      if (columnCount === 0) {
+        context.addIssue({
+          code: "custom",
+          message: "matrix data must contain at least one column.",
+          path: ["values"],
+        });
+      }
+      dataset.values.forEach((row, index) => {
+        if (row.length !== columnCount) {
+          context.addIssue({
+            code: "custom",
+            message: "matrix data must be rectangular.",
+            path: ["values", index],
+          });
+        }
+      });
+    }),
   ]),
 });
 

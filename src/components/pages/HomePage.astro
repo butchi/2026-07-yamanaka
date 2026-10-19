@@ -6,6 +6,7 @@ import { filterIntegerSequenceEntries, resolveObjectEntries } from "@/lib/object
 import { objectPagePath } from "@/lib/objectIdentity";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
 import { resolveConstantEntries } from "@/lib/constantEntries";
+import { resolveDataObjectEntries } from "@/lib/dataObjectEntries";
 const locale = localeFromPath(Astro.url.pathname);
 const t = (en: string, ja: string) => text(locale, en, ja);
 const path = (value: string) => localizedPath(value, locale);
@@ -19,6 +20,7 @@ const [objects, readmes, datasets, objectValues] = await Promise.all([
 const sequences = filterIntegerSequenceEntries(objects, readmes);
 const concepts = resolveObjectEntries(sequences.objects, sequences.readmes, datasets);
 const constantEntries = resolveConstantEntries(objects, readmes, objectValues, datasets);
+const dataObjectEntries = resolveDataObjectEntries(objects, readmes, datasets);
 ---
 
 <BaseLayout
@@ -91,6 +93,29 @@ const constantEntries = resolveConstantEntries(objects, readmes, objectValues, d
           </a>
         </article>
       ))}
+      {dataObjectEntries.map(({ object, identity, content, japaneseReadme }, index) => {
+        const target = localizedPath(objectPagePath(identity), japaneseReadme ? locale : "en");
+        return (
+          <article class="concept-card libra-object-card">
+            <div class="object-card-topline">
+              <span class="object-index">{String(concepts.length + constantEntries.length + index + 1).padStart(2, "0")}</span>
+              <span class="object-type">{content.data.format === "matrix" ? "MATRIX" : "JSON DATA"}</span>
+            </div>
+            <p class="concept-card__english">{object.data.name.en}</p>
+            <h3><a href={target}>{object.data.name[locale]}<span aria-hidden="true"> ↗</span></a></h3>
+            <p class="object-description">{object.data.translations?.ja?.seo.description && locale === "ja" ? object.data.translations.ja.seo.description : object.data.seo.description}</p>
+            {content.data.format === "matrix"
+              ? <p>{t(
+                `${content.data.values.length} × ${content.data.values[0].length} matrix excerpt`,
+                `行列データ（${content.data.values.length} × ${content.data.values[0].length}項の抜粋）`,
+              )}</p>
+              : <pre><code>{JSON.stringify(content.data.value)}</code></pre>}
+            <a class="text-link" href={target}>
+              {locale === "ja" && !japaneseReadme ? "日本語版は未提供・英語版を見る" : t("View structured data and documentation", "構造化データ・解説を見る")} <span aria-hidden="true">→</span>
+            </a>
+          </article>
+        );
+      })}
     </div>
   </section>
 

@@ -62,4 +62,41 @@ describe("persisted object datasets", () => {
       );
     }
   });
+
+  it("stores the Wythoff array as a row-major matrix excerpt with one-based indices", async () => {
+    const object = JSON.parse(
+      await readFile(resolve("objects", "wythoff-array", "object.json"), "utf8"),
+    ) as { id: string; type: string };
+    const dataset = JSON.parse(
+      await readFile(resolve("objects", "wythoff-array", "data", "content.json"), "utf8"),
+    ) as {
+      objectId: string;
+      format: string;
+      rowIndexOrigin: number;
+      columnIndexOrigin: number;
+      values: number[][];
+    };
+    expect(object.type).toBe("data-object");
+    expect(dataset).toMatchObject({
+      objectId: object.id,
+      format: "matrix",
+      rowIndexOrigin: 1,
+      columnIndexOrigin: 1,
+    });
+    expect(dataset.values).toHaveLength(10);
+    expect(dataset.values.every((row) => row.length === 10)).toBe(true);
+    expect(dataset.values.slice(0, 5).map((row) => row.slice(0, 2))).toEqual([
+      [1, 2],
+      [4, 7],
+      [6, 10],
+      [9, 15],
+      [12, 20],
+    ]);
+    for (const row of dataset.values) {
+      for (let column = 2; column < row.length; column += 1) {
+        expect(row[column]).toBe(row[column - 2] + row[column - 1]);
+      }
+    }
+    expect(new Set(dataset.values.flat()).size).toBe(100);
+  });
 });
