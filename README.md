@@ -359,7 +359,7 @@ pnpm test:e2e
 [`deploy-pages.yml`](./.github/workflows/deploy-pages.yml) は `develop` へのpushで静的サイトをビルドし、GitHub Pagesへ公開します。既存ホスティング用の `pnpm build` はそのまま残し、PagesではWorkerを含めない `pnpm build:pages` を使用します。
 
 1. リポジトリの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** に設定します。
-2. **Settings → Environments → github-pages** にデプロイブランチ制限がある場合は、`develop` を許可します。
+2. **Settings → Environments → github-pages → Deployment branches and tags** にデプロイブランチ制限がある場合は、Branchルールとして `develop` を追加します。`main` だけが許可されている状態では、ビルドが成功してもデプロイは拒否されます。既存ルールを削除したり、保護を無効にしたりする必要はありません。
 3. この変更を `develop` にpushし、Actionsの **Deploy to GitHub Pages** が成功することを確認します。
 
 このリポジトリの標準公開URLは `https://butchi.github.io/2026-07-yamanaka/` です。ワークフローはGitHub Pagesの設定から `SITE_URL`（origin）と `BASE_PATH` を取得するため、リポジトリ配下のURLでも、ページ・言語切り替え・保存データ・関数・画像・SEOのURLを同じプレフィックスにそろえます。独自ドメインの設定は自動変更しません。手動実行も定義していますが、GitHubの仕様上、実行ボタンを表示するにはワークフローがデフォルトブランチにも必要です。
