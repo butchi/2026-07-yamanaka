@@ -3,5 +3,7 @@
   "format": "exact-constant",
   "valueType": "irrational",
   "symbol": "φ",
-  "exactValue": "(1 + √5) / 2"
+  "exactValue": "(1 + √5) / 2",
+  "exactValueContentMathML": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><apply><eq/><ci>φ</ci><apply><divide/><apply><plus/><cn>1</cn><apply><root/><cn>5</cn></apply></apply><cn>2</cn></apply></apply></math>",
+  "exactValuePresentationMathML": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"><mrow><mi>φ</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><msqrt><mn>5</mn></msqrt></mrow><mn>2</mn></mfrac></mrow></math>"
 }

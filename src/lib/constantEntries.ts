@@ -22,6 +22,8 @@ export function resolveConstantEntries<
       valueType: string;
       symbol: string;
       exactValue: string;
+      exactValueContentMathML: string;
+      exactValuePresentationMathML: string;
     };
   },
 >(

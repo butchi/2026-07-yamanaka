@@ -2,6 +2,7 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 import { uuidV7Pattern } from "./lib/objectIdentity";
+import { isSafeContentMathML } from "./lib/contentMathML";
 
 const objectId = z.string().regex(uuidV7Pattern);
 const seo = z.object({
@@ -134,6 +135,8 @@ const objectValues = defineCollection({
     valueType: z.literal("irrational"),
     symbol: z.string().trim().min(1),
     exactValue: z.string().trim().min(1),
+    exactValueContentMathML: z.string().refine(isSafeContentMathML, "Must be safe, well-formed Content MathML."),
+    exactValuePresentationMathML: z.string().refine(isSafeContentMathML, "Must be safe, well-formed Presentation MathML."),
   }).strict(),
 });
 

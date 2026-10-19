@@ -16,7 +16,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 - `/constants/golden-ratio/` — 黄金比の厳密値、小数近似、定義と性質
 - `/objects/<UUID>/data/digest.json` — 黄金比のコンパクトなJSON数値近似（小数点以下16桁）
 - `/objects/<UUID>/data/standard.json` — 黄金比の通常の10進表記による近似（小数点以下256桁を文字列で保持）
-- `/objects/<UUID>/data/value.json` — 黄金比の記号と厳密値を含む型付きデータ
+- `/objects/<UUID>/data/value.json` — 黄金比の記号・厳密値とContent MathMLを含む型付きデータ
 - `/about/` — 設計方針、貢献方針、Miyaburu構想
 - `/license/` — MIT License
 

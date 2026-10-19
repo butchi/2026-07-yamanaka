@@ -57,7 +57,10 @@ const { Content } = await render(selectedReadme);
       <dl class="definition-grid">
         <div>
           <dt>{t("Exact value", "厳密値")}</dt>
-          <dd><code>{value.data.symbol} = {value.data.exactValue}</code></dd>
+          <dd class="exact-value-math">
+            <span class="visually-hidden">{value.data.symbol} = {value.data.exactValue}</span>
+            <span set:html={value.data.exactValuePresentationMathML} />
+          </dd>
         </div>
         <div>
           <dt>{t("Digest approximation (16 decimal places)", "ダイジェスト近似値（小数点以下16桁）")}</dt>

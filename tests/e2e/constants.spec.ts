@@ -16,7 +16,11 @@ test("golden ratio page distinguishes its exact value from a finite approximatio
   await page.goto("/ja/constants/golden-ratio/");
 
   await expect(page.locator(".concept-header").getByRole("heading", { level: 1, name: "黄金比" })).toBeVisible();
-  await expect(page.getByText("φ = (1 + √5) / 2")).toBeVisible();
+  const math = page.locator(".exact-value-math math");
+  await expect(math).toHaveAttribute("xmlns", "http://www.w3.org/1998/Math/MathML");
+  await expect(math.locator("mfrac")).toHaveCount(1);
+  await expect(math.locator("msqrt mn")).toHaveText("5");
+  await expect(math.locator("mrow > mi")).toHaveText("φ");
   await expect(page.getByText(/ダイジェスト近似値（小数点以下16桁）/)).toBeVisible();
   await expect(page.getByText(/標準近似値（小数点以下256桁）/)).toBeVisible();
   await expect(page.getByRole("link", { name: "厳密値JSON" })).toHaveAttribute(
@@ -35,6 +39,8 @@ test("golden ratio JSON exposes exact symbolic data and labeled approximation", 
     valueType: "irrational",
     symbol: "φ",
     exactValue: "(1 + √5) / 2",
+    exactValueContentMathML: '<math xmlns="http://www.w3.org/1998/Math/MathML"><apply><eq/><ci>φ</ci><apply><divide/><apply><plus/><cn>1</cn><apply><root/><cn>5</cn></apply></apply><cn>2</cn></apply></apply></math>',
+    exactValuePresentationMathML: '<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi>φ</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><msqrt><mn>5</mn></msqrt></mrow><mn>2</mn></mfrac></mrow></math>',
   });
 });
 
