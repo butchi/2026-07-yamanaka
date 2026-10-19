@@ -1,0 +1,21 @@
+{
+  "type": "data-object",
+  "id": "01a15230-8a40-7ee1-9071-1ba1ef75f69f",
+  "name": {
+    "en": "Weird number 70",
+    "ja": "不思議数 70"
+  },
+  "seo": {
+    "title": "Weird number 70 — Divisors and classification | Libra",
+    "description": "The smallest weird number: 70 is abundant but not semiperfect."
+  },
+  "translations": {
+    "ja": {
+      "seo": {
+        "title": "不思議数 70 — 約数と分類｜Libra",
+        "description": "最小の不思議数70を、過剰数だが擬似完全数ではない例として約数から検証します。"
+      }
+    }
+  },
+  "relatedObjectIds": []
+}

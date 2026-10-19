@@ -99,4 +99,72 @@ describe("persisted object datasets", () => {
     }
     expect(new Set(dataset.values.flat()).size).toBe(100);
   });
+
+  it("records 70 as the smallest weird number and distinguishes the abundant number 12", async () => {
+    const object = JSON.parse(
+      await readFile(resolve("objects", "weird-number-70", "object.json"), "utf8"),
+    ) as { id: string; type: string };
+    const dataset = JSON.parse(
+      await readFile(resolve("objects", "weird-number-70", "data", "content.json"), "utf8"),
+    ) as {
+      objectId: string;
+      format: string;
+      value: {
+        smallestWeirdNumber: {
+          value: number;
+          properDivisors: number[];
+          properDivisorSum: number;
+          abundant: boolean;
+          semiperfect: boolean;
+          weird: boolean;
+        };
+        abundantButNotWeird: {
+          value: number;
+          properDivisors: number[];
+          properDivisorSum: number;
+          semiperfectWitness: number[];
+          abundant: boolean;
+          semiperfect: boolean;
+          weird: boolean;
+        };
+      };
+    };
+    const hasSubsetSum = (values: readonly number[], target: number) =>
+      values.reduce((sums, value) => new Set([...sums, ...[...sums].map((sum) => sum + value)]), new Set([0])).has(target);
+    const properDivisorsOf = (value: number) =>
+      Array.from({ length: value - 1 }, (_, index) => index + 1).filter((divisor) => value % divisor === 0);
+    const weirdStatus = (value: number) => {
+      const properDivisors = properDivisorsOf(value);
+      return properDivisors.reduce((sum, divisor) => sum + divisor, 0) > value &&
+        !hasSubsetSum(properDivisors, value);
+    };
+    const { smallestWeirdNumber, abundantButNotWeird } = dataset.value;
+
+    expect(object.type).toBe("data-object");
+    expect(dataset).toMatchObject({ objectId: object.id, format: "json" });
+    expect(smallestWeirdNumber).toMatchObject({
+      value: 70,
+      properDivisors: [1, 2, 5, 7, 10, 14, 35],
+      properDivisorSum: 74,
+      abundant: true,
+      semiperfect: false,
+      weird: true,
+    });
+    expect(smallestWeirdNumber.properDivisors.reduce((sum, divisor) => sum + divisor, 0))
+      .toBe(smallestWeirdNumber.properDivisorSum);
+    expect(hasSubsetSum(smallestWeirdNumber.properDivisors, smallestWeirdNumber.value)).toBe(false);
+    expect(abundantButNotWeird).toMatchObject({
+      value: 12,
+      properDivisors: [1, 2, 3, 4, 6],
+      properDivisorSum: 16,
+      semiperfectWitness: [2, 4, 6],
+      abundant: true,
+      semiperfect: true,
+      weird: false,
+    });
+    expect(abundantButNotWeird.semiperfectWitness.reduce((sum, divisor) => sum + divisor, 0))
+      .toBe(abundantButNotWeird.value);
+    expect(weirdStatus(smallestWeirdNumber.value)).toBe(true);
+    expect(Array.from({ length: 69 }, (_, index) => index + 1).some(weirdStatus)).toBe(false);
+  });
 });

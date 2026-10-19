@@ -1,0 +1,29 @@
+{
+  "objectId": "01a15230-8a40-7ee1-9071-1ba1ef75f69f",
+  "format": "json",
+  "value": {
+    "definition": {
+      "properDivisor": "A positive divisor less than the number itself.",
+      "abundant": "The sum of the proper divisors is greater than the number.",
+      "semiperfect": "Some subset of the proper divisors sums to the number.",
+      "weird": "Abundant but not semiperfect."
+    },
+    "smallestWeirdNumber": {
+      "value": 70,
+      "properDivisors": [1, 2, 5, 7, 10, 14, 35],
+      "properDivisorSum": 74,
+      "abundant": true,
+      "semiperfect": false,
+      "weird": true
+    },
+    "abundantButNotWeird": {
+      "value": 12,
+      "properDivisors": [1, 2, 3, 4, 6],
+      "properDivisorSum": 16,
+      "semiperfectWitness": [2, 4, 6],
+      "abundant": true,
+      "semiperfect": true,
+      "weird": false
+    }
+  }
+}
