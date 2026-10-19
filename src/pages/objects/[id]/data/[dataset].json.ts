@@ -2,8 +2,11 @@ import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
-  const datasets = await getCollection("datasets");
-  return datasets.map((dataset) => {
+  const [datasets, values] = await Promise.all([
+    getCollection("datasets"),
+    getCollection("objectValues"),
+  ]);
+  const datasetPaths = datasets.map((dataset) => {
     const [directory, category, format, ...extraParts] = dataset.id.split("/");
     if (category !== "data" || !directory || !format || extraParts.length > 0) {
       throw new Error(`Invalid object dataset ID "${dataset.id}".`);
@@ -13,6 +16,17 @@ export async function getStaticPaths() {
       props: { data: dataset.data },
     };
   });
+  const valuePaths = values.map((value) => {
+    const [, category, filename, ...extraParts] = value.id.split("/");
+    if (category !== "data" || filename !== "value" || extraParts.length > 0) {
+      throw new Error(`Invalid object value ID "${value.id}".`);
+    }
+    return {
+      params: { id: value.data.objectId, dataset: filename },
+      props: { data: value.data },
+    };
+  });
+  return [...datasetPaths, ...valuePaths];
 }
 
 export const GET: APIRoute = ({ props }) =>

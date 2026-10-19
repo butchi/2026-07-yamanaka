@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { publishedConcepts } from "./conceptRegistry";
 import { resolveObjectEntries } from "./objectEntries";
-import { objectIdentities, createObjectRedirects } from "./objectIdentity";
+import { integerSequenceIdentities as objectIdentities, createObjectRedirects } from "./objectIdentity";
 
 const [fibonacci, prime, square] = objectIdentities;
 

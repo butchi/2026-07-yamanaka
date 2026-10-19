@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { objectIdentities } from "../../src/lib/objectIdentity";
+import { integerSequenceIdentities as objectIdentities } from "../../src/lib/objectIdentity";
 
 const repositoryUrl = "https://github.com/butchi/2026-07-yamanaka";
 const compareUrl = `${repositoryUrl}/compare/develop...develop?expand=1`;

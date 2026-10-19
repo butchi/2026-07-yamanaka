@@ -116,6 +116,7 @@ export function createObject({ root, slug, name, description, conceptId = slug }
       throw new Error("Generated UUID already exists; retry creation.");
     }
     const data = {
+      type: "integer-sequence",
       id,
       conceptId: conceptId.trim(),
       seo: { title: `${name.trim()} — Data, functions and documentation | Libra`, description: description.trim() },
@@ -128,7 +129,7 @@ export function createObject({ root, slug, name, description, conceptId = slug }
       createdFiles.push(readmePath);
     }
     registryTemporary = join(objects, `.registry-${randomBytes(8).toString("hex")}.tmp`);
-    writeFileSync(registryTemporary, `${JSON.stringify([...registry, { id, slug, previousSlugs: [] }], null, 2)}\n`, { flag: "wx" });
+    writeFileSync(registryTemporary, `${JSON.stringify([...registry, { id, slug, type: "integer-sequence", previousSlugs: [] }], null, 2)}\n`, { flag: "wx" });
     renameSync(registryTemporary, registryPath);
     registryTemporary = undefined;
     return { id, slug, created: true };

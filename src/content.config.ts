@@ -4,6 +4,13 @@ import { z } from "astro/zod";
 import { uuidV7Pattern } from "./lib/objectIdentity";
 
 const objectId = z.string().regex(uuidV7Pattern);
+const seo = z.object({
+  title: z.string().trim().min(1),
+  description: z.string().trim().min(1),
+}).strict();
+const translations = z.object({
+  ja: z.object({ seo }).strict().optional(),
+}).strict().optional();
 
 const objectReadmes = defineCollection({
   loader: glob({
@@ -20,32 +27,36 @@ const objects = defineCollection({
     base: "./objects",
     generateId: ({ entry }) => entry.split("/")[0],
   }),
-  schema: z.object({
-    id: objectId,
-    conceptId: z.string().min(1),
-    seo: z.object({
-      title: z.string().trim().min(1),
-      description: z.string().trim().min(1),
-    }).strict(),
-    relatedObjectIds: z.array(objectId),
-    translations: z.object({
-      ja: z.object({
-        seo: z.object({
-          title: z.string().trim().min(1),
-          description: z.string().trim().min(1),
-        }).strict(),
+  schema: z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("integer-sequence"),
+      id: objectId,
+      conceptId: z.string().min(1),
+      seo,
+      relatedObjectIds: z.array(objectId),
+      translations,
+      blog: z.object({
+        title: z.string().trim().min(1),
+        url: z.url({ protocol: /^https?$/ }),
       }).strict().optional(),
-    }).strict().optional(),
-    blog: z.object({
-      title: z.string().trim().min(1),
-      url: z.url({ protocol: /^https?$/ }),
-    }).strict().optional(),
-  }).strict(),
+    }).strict(),
+    z.object({
+      type: z.literal("mathematical-constant"),
+      id: objectId,
+      name: z.object({
+        en: z.string().trim().min(1),
+        ja: z.string().trim().min(1),
+      }).strict(),
+      seo,
+      relatedObjectIds: z.array(objectId),
+      translations,
+    }).strict(),
+  ]),
 });
 
 const datasets = defineCollection({
   loader: glob({
-    pattern: "*/data/*.json",
+    pattern: "*/data/{digest,standard}.json",
     base: "./objects",
     generateId: ({ entry }) => entry.replace(/\.json$/, ""),
   }),
@@ -67,4 +78,31 @@ const datasets = defineCollection({
   }),
 });
 
-export const collections = { objectReadmes, objects, datasets };
+const objectValues = defineCollection({
+  loader: glob({
+    pattern: "*/data/value.json",
+    base: "./objects",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ""),
+  }),
+  schema: z.object({
+    objectId,
+    format: z.literal("decimal-constant"),
+    valueType: z.literal("irrational"),
+    symbol: z.string().trim().min(1),
+    exactValue: z.string().trim().min(1),
+    decimalApproximation: z.string().regex(/^-?(0|[1-9]\d*)\.\d+$/),
+    approximationMethod: z.literal("truncated"),
+    decimalPlaces: z.number().int().positive(),
+  }).strict().superRefine((value, context) => {
+    const decimalPlaces = value.decimalApproximation.split(".")[1]?.length;
+    if (decimalPlaces !== value.decimalPlaces) {
+      context.addIssue({
+        code: "custom",
+        message: "decimalPlaces must match the stored approximation.",
+        path: ["decimalPlaces"],
+      });
+    }
+  }),
+});
+
+export const collections = { objectReadmes, objects, datasets, objectValues };

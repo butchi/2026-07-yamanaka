@@ -1,5 +1,20 @@
 import { conceptRegistry, publishedConcepts } from "./conceptRegistry";
-import { objectIdentities, type ObjectIdentity, validateObjectIdentities } from "./objectIdentity";
+import { integerSequenceIdentities, type ObjectIdentity, validateObjectIdentities } from "./objectIdentity";
+
+export function filterIntegerSequenceEntries<
+  DataEntry extends { id: string; data: { type: string } },
+  ReadmeEntry extends { id: string },
+>(dataEntries: readonly DataEntry[], readmes: readonly ReadmeEntry[]) {
+  const sequences = dataEntries.filter(
+    (entry): entry is DataEntry & { data: { type: "integer-sequence" } } =>
+      entry.data.type === "integer-sequence",
+  );
+  const directories = new Set(sequences.map(({ id }) => id));
+  return {
+    objects: sequences,
+    readmes: readmes.filter(({ id }) => directories.has(id.replace(/\/ja$/, ""))),
+  };
+}
 
 export function resolveObjectEntries<
   DataEntry extends {
@@ -24,7 +39,7 @@ export function resolveObjectEntries<
   dataEntries: readonly DataEntry[],
   readmes: readonly ReadmeEntry[],
   datasets: readonly DatasetEntry[],
-  identities: readonly ObjectIdentity[] = objectIdentities,
+  identities: readonly ObjectIdentity[] = integerSequenceIdentities,
 ) {
   validateObjectIdentities(identities);
   const dataById = new Map(dataEntries.map((entry) => [entry.data.id, entry]));

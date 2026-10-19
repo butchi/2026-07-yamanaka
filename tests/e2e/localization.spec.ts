@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { objectIdentities } from "../../src/lib/objectIdentity";
+import { integerSequenceIdentities as objectIdentities } from "../../src/lib/objectIdentity";
 
 for (const locale of ["en", "ja"] as const) {
   const prefix = locale === "ja" ? "/ja" : "";
@@ -71,6 +71,7 @@ test("sitemap pairs translations while UUID assets remain language-neutral", asy
   expect(sitemap).toContain('hreflang="en"');
   expect(sitemap).toContain('hreflang="ja"');
   expect(sitemap).toContain("/ja/numbers/fibonacci/");
+  expect(sitemap).toContain("/ja/constants/golden-ratio/");
   expect(sitemap).not.toContain("/ja/objects/");
   const english = await request.get(`/objects/${objectIdentities[0].id}/data/standard.json`);
   expect(english.ok()).toBe(true);

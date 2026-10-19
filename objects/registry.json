@@ -2,16 +2,25 @@
   {
     "id": "01a15005-fe79-7ac4-bfaf-8b8e82577063",
     "slug": "fibonacci",
+    "type": "integer-sequence",
     "previousSlugs": []
   },
   {
     "id": "01a15005-fe79-7307-a613-cf18c832ed86",
     "slug": "prime",
+    "type": "integer-sequence",
     "previousSlugs": []
   },
   {
     "id": "01a15005-fe79-76fd-a867-2e65c311d784",
     "slug": "square",
+    "type": "integer-sequence",
+    "previousSlugs": []
+  },
+  {
+    "id": "01a151f3-d56b-79f1-ae83-17b243559f38",
+    "slug": "golden-ratio",
+    "type": "mathematical-constant",
     "previousSlugs": []
   }
 ]

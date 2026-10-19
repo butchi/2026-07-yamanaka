@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { APIRoute } from "astro";
-import { objectIdentities } from "@/lib/objectIdentity";
+import { integerSequenceIdentities } from "@/lib/objectIdentity";
 import { compileObjectModule } from "@/lib/objectModules";
 import { getCollection } from "astro:content";
 
@@ -11,7 +11,7 @@ interface Props {
 
 export async function getStaticPaths() {
   const objects = await getCollection("objects");
-  const paths = await Promise.all(objectIdentities.map(async ({ id }) => {
+  const paths = await Promise.all(integerSequenceIdentities.map(async ({ id }) => {
     const object = objects.find((entry) => entry.data.id === id);
     if (!object) throw new Error(`Missing source directory for object "${id}".`);
     const source = await readFile(

@@ -3,7 +3,7 @@ import sitemap from "@astrojs/sitemap";
 import { satteri } from "@astrojs/markdown-satteri";
 import objectReadmeHeadings from "./scripts/object-readme-headings.mjs";
 import latexMath from "./scripts/latex-math.mjs";
-import { objectRedirects } from "./src/lib/objectIdentity";
+import { objectRedirects, objectPagePath } from "./src/lib/objectIdentity";
 import { writeFile } from "node:fs/promises";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { objectIdentities } from "./src/lib/objectIdentity";
@@ -15,7 +15,7 @@ const translatedIds = new Set(readdirSync(new URL("./objects/", import.meta.url)
   .map((entry) => entry.id));
 const translatedPaths = new Set([
   "/", "/about/", "/license/", "/numbers/",
-  ...objectIdentities.filter(({ id }) => translatedIds.has(id)).map(({ slug }) => `/numbers/${slug}/`),
+  ...objectIdentities.filter(({ id }) => translatedIds.has(id)).map(objectPagePath),
 ]);
 
 export default defineConfig({

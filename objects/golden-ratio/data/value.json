@@ -1,0 +1,10 @@
+{
+  "objectId": "01a151f3-d56b-79f1-ae83-17b243559f38",
+  "format": "decimal-constant",
+  "valueType": "irrational",
+  "symbol": "φ",
+  "exactValue": "(1 + √5) / 2",
+  "decimalApproximation": "1.61803398874989484820458683436563811772030917980576",
+  "approximationMethod": "truncated",
+  "decimalPlaces": 50
+}

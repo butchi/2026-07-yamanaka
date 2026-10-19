@@ -6,19 +6,27 @@ export { uuidV7Pattern, validateObjectIdentities } from "./objectIdentityValidat
 export interface ObjectIdentity {
   id: string;
   slug: string;
+  type?: "integer-sequence" | "mathematical-constant";
   previousSlugs: readonly string[];
 }
 
-export const objectIdentities = validateObjectIdentities(registry);
+export const objectIdentities = validateObjectIdentities(registry as ObjectIdentity[]);
+export const integerSequenceIdentities = objectIdentities.filter(
+  ({ type }) => type === undefined || type === "integer-sequence",
+);
+export const mathematicalConstantIdentities = objectIdentities.filter(
+  ({ type }) => type === "mathematical-constant",
+);
 
 export function objectPagePath(identity: ObjectIdentity) {
-  return `/numbers/${identity.slug}/`;
+  const category = identity.type === "mathematical-constant" ? "constants" : "numbers";
+  return `/${category}/${identity.slug}/`;
 }
 
 export function createObjectRedirects(entries: readonly ObjectIdentity[]) {
   validateObjectIdentities(entries);
   const redirects: Record<string, string> = {};
-  const assets = [
+  const sequenceAssets = [
     "functions.js",
     "functions.mjs",
     "data/digest.json",
@@ -29,12 +37,15 @@ export function createObjectRedirects(entries: readonly ObjectIdentity[]) {
     redirects[`/id/${entry.id}`] = destination;
     redirects[`/id/${entry.id}/`] = destination;
     for (const slug of entry.previousSlugs) {
-      redirects[`/numbers/${slug}`] = destination;
-      redirects[`/numbers/${slug}/`] = destination;
+      const category = entry.type === "mathematical-constant" ? "constants" : "numbers";
+      redirects[`/${category}/${slug}`] = destination;
+      redirects[`/${category}/${slug}/`] = destination;
     }
-    for (const slug of [entry.slug, ...entry.previousSlugs]) {
-      for (const asset of assets) {
-        redirects[`/objects/${slug}/${asset}`] = `/objects/${entry.id}/${asset}`;
+    if (entry.type !== "mathematical-constant") {
+      for (const slug of [entry.slug, ...entry.previousSlugs]) {
+        for (const asset of sequenceAssets) {
+          redirects[`/objects/${slug}/${asset}`] = `/objects/${entry.id}/${asset}`;
+        }
       }
     }
   }

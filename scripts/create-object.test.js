@@ -51,13 +51,14 @@ describe("object:create", () => {
     expect(result).toMatchObject({ slug: "triangular", created: true });
     expect(result.id).toMatch(uuidV7Pattern);
     expect(JSON.parse(read(root, "triangular/object.json"))).toEqual({
+      type: "integer-sequence",
       id: result.id,
       conceptId: "triangularNumbers",
       seo: { title: "Triangular numbers — Data, functions and documentation | Libra", description: "Definitions and examples of triangular numbers." },
       relatedObjectIds: [],
     });
     expect(JSON.parse(read(root, "registry.json"))).toEqual([
-      { id: result.id, slug: "triangular", previousSlugs: [] },
+      { id: result.id, slug: "triangular", type: "integer-sequence", previousSlugs: [] },
     ]);
     const readme = read(root, "triangular/README.md");
     for (const section of ["Details", "Examples", "Scope", "Generalizations and extensions", "Applications", "Properties and relations", "Possible issues", "Interesting examples", "References"]) {
@@ -87,7 +88,7 @@ describe("object:create", () => {
     writeFileSync(join(root, "objects/fibonacci/object.json"), metadata);
     const result = createObject(options(root));
     expect(JSON.parse(read(root, "registry.json"))).toEqual([
-      identity, { id: result.id, slug: "triangular", previousSlugs: [] },
+      identity, { id: result.id, slug: "triangular", type: "integer-sequence", previousSlugs: [] },
     ]);
     expect(read(root, "fibonacci/object.json")).toBe(metadata);
   });

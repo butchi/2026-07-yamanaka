@@ -1,0 +1,89 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { objectPagePath, type ObjectIdentity } from "@/lib/objectIdentity";
+import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+
+interface Props {
+  constant: CollectionEntry<"objects">;
+  identity: ObjectIdentity;
+  readme: CollectionEntry<"objectReadmes">;
+  japaneseReadme?: CollectionEntry<"objectReadmes">;
+  value: CollectionEntry<"objectValues">;
+  relatedObjects: readonly ObjectIdentity[];
+}
+
+const { constant, identity, readme, japaneseReadme, value, relatedObjects } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
+const data = constant.data;
+if (data.type !== "mathematical-constant") throw new Error(`Object "${identity.id}" is not a mathematical constant.`);
+const seo = locale === "ja" ? data.translations?.ja?.seo : data.seo;
+if (!seo) throw new Error(`Missing ${locale} SEO for constant "${identity.id}".`);
+const selectedReadme = locale === "ja" ? japaneseReadme : readme;
+if (!selectedReadme) throw new Error(`Missing ${locale} README for constant "${identity.id}".`);
+const { Content } = await render(selectedReadme);
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  hasJapanese={Boolean(data.translations?.ja)}
+  ogType="article"
+  canonical={objectPagePath(identity)}
+  breadcrumbs={[
+    { label: t("Catalog", "カタログ"), href: locale === "ja" ? "/ja/numbers/" : "/numbers/" },
+    { label: data.name[locale] },
+  ]}
+>
+  <article class="concept-page">
+    <header class="page-header concept-header">
+      <p class="eyebrow">{t("MATHEMATICAL CONSTANT", "数学定数")}</p>
+      <h1>{data.name[locale]}</h1>
+      <p class="lead">{t("An irrational number with an exact algebraic form and a finite decimal approximation.", "厳密な代数形式と有限桁の小数近似を持つ無理数です。")}</p>
+      <div class="concept-identifiers">
+        <span>{t("Symbol", "記号")}: {value.data.symbol}</span>
+        <span>{t("Irrational number", "無理数")}</span>
+        <a href={`/id/${identity.id}/`}>{t("Permanent link", "永続リンク")}</a>
+      </div>
+    </header>
+
+    <section class="page-section sequence-first" aria-labelledby="value-heading">
+      <p class="eyebrow">DATA / EXACT VALUE</p>
+      <h2 id="value-heading">{t("Exact value and approximation", "厳密値と近似値")}</h2>
+      <dl class="definition-grid">
+        <div>
+          <dt>{t("Exact value", "厳密値")}</dt>
+          <dd><code>{value.data.symbol} = {value.data.exactValue}</code></dd>
+        </div>
+        <div>
+          <dt>{t("Decimal approximation", "小数近似")}</dt>
+          <dd><code>{value.data.decimalApproximation}…</code></dd>
+        </div>
+      </dl>
+      <p class="text-muted">{t(`The decimal is truncated after ${value.data.decimalPlaces} digits after the decimal point. It is not an exact representation of this irrational number.`, `小数点以下${value.data.decimalPlaces}桁で打ち切った近似値です。無理数の厳密な表現ではありません。`)}</p>
+      <p class="dataset-links">
+        <a href={`/objects/${identity.id}/data/value.json`} target="_blank" rel="noopener">{t("Value data (JSON)", "値データ（JSON）")}</a>
+      </p>
+    </section>
+
+    <section class="page-section" aria-labelledby="overview-heading">
+      <p class="eyebrow">DOCUMENTATION / DEFINITION</p>
+      <h2 id="overview-heading">{t("Definition and properties", "定義と性質")}</h2>
+      <div class="object-document"><Content /></div>
+    </section>
+    {relatedObjects.length > 0 && (
+      <section class="page-section" aria-labelledby="related-heading">
+        <h2 id="related-heading">{t("Related objects", "関連オブジェクト")}</h2>
+        <div class="related-grid">
+          {relatedObjects.map((related) => (
+            <a class="related-card" href={localizedPath(objectPagePath(related), locale)}>
+              <span>{related.slug}</span>
+              <strong>{related.slug}</strong>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </article>
+</BaseLayout>

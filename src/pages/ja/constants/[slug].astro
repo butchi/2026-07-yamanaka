@@ -1,0 +1,21 @@
+---
+import ConstantPage from "@/components/pages/ConstantPage.astro";
+import { resolveConstantEntries } from "@/lib/constantEntries";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const [objects, readmes, values] = await Promise.all([
+    getCollection("objects"),
+    getCollection("objectReadmes"),
+    getCollection("objectValues"),
+  ]);
+  return resolveConstantEntries(objects, readmes, values)
+    .filter(({ japaneseReadme }) => japaneseReadme !== undefined)
+    .map(({ object, identity, readme, japaneseReadme, value, relatedObjects }) => ({
+      params: { slug: identity.slug },
+      props: { constant: object, identity, readme, japaneseReadme, value, relatedObjects },
+    }));
+}
+---
+
+<ConstantPage {...Astro.props} />

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createObjectRedirects, objectIdentities, validateObjectIdentities } from "./objectIdentity";
+import {
+  createObjectRedirects,
+  mathematicalConstantIdentities,
+  objectIdentities,
+  objectPagePath,
+  validateObjectIdentities,
+} from "./objectIdentity";
 import worker from "../../worker";
 
 const [fibonacci, prime] = objectIdentities;
@@ -29,6 +35,13 @@ describe("object identity and permanent redirects", () => {
     expect(redirects["/numbers/fibonacci/"]).toBe("/numbers/new-name/");
     expect(redirects["/numbers/old-name/"]).toBe("/numbers/new-name/");
     expect(redirects["/objects/old-name/functions.mjs"]).toBe(`/objects/${fibonacci.id}/functions.mjs`);
+  });
+
+  it("routes mathematical constants by their registered object type", () => {
+    const [goldenRatio] = mathematicalConstantIdentities;
+    expect(objectPagePath(goldenRatio)).toBe("/constants/golden-ratio/");
+    expect(createObjectRedirects([goldenRatio])[`/id/${goldenRatio.id}/`])
+      .toBe("/constants/golden-ratio/");
   });
 
   it.each(["GET", "HEAD"])("serves HTTP 301 with query preservation for %s", async (method) => {

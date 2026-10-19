@@ -3,30 +3,34 @@ import OperationAvailability from "@/components/concept/OperationAvailability.as
 import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
-import { resolveObjectEntries } from "@/lib/objectEntries";
+import { filterIntegerSequenceEntries, resolveObjectEntries } from "@/lib/objectEntries";
+import { resolveConstantEntries } from "@/lib/constantEntries";
 import { objectPagePath } from "@/lib/objectIdentity";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
 const locale = localeFromPath(Astro.url.pathname);
 const t = (en: string, ja: string) => text(locale, en, ja);
 
-const [objects, readmes, datasets] = await Promise.all([
+const [objects, readmes, datasets, objectValues] = await Promise.all([
   getCollection("objects"),
   getCollection("objectReadmes"),
   getCollection("datasets"),
+  getCollection("objectValues"),
 ]);
-const concepts = resolveObjectEntries(objects, readmes, datasets);
+const sequences = filterIntegerSequenceEntries(objects, readmes);
+const concepts = resolveObjectEntries(sequences.objects, sequences.readmes, datasets);
+const constantEntries = resolveConstantEntries(objects, readmes, objectValues);
 ---
 
 <BaseLayout
-  title={t("Integer sequence catalog | Libra", "整数列カタログ｜Libra")}
-  description={t("Definitions, exact data and functions for Fibonacci numbers, primes and squares.", "フィボナッチ数、素数、平方数のデータ、数学的な定義、利用可能な関数をまとめたLibraの整数列カタログです。")}
-  breadcrumbs={[{ label: t("Catalog", "カタログ") }, { label: t("Integer sequences", "整数列") }]}
+  title={t("Mathematical object catalog | Libra", "数学オブジェクトカタログ｜Libra")}
+  description={t("Explore mathematical sequences and constants through exact data, useful functions and documentation.", "数学の数列や定数を、正確なデータ、関数、ドキュメントとともに紹介します。")}
+  breadcrumbs={[{ label: t("Catalog", "カタログ") }, { label: t("Mathematical objects", "数学オブジェクト") }]}
 >
   <header class="page-header">
-    <p class="eyebrow">LIBRA / CATALOG / SEQUENCES</p>
-    <h1>{t("Integer sequence catalog", "整数列カタログ")}</h1>
+    <p class="eyebrow">LIBRA / CATALOG / MATHEMATICAL OBJECTS</p>
+    <h1>{t("Mathematical object catalog", "数学オブジェクトカタログ")}</h1>
     <p class="lead">
-      {t("Read definitions and data, try functions, and explore OEIS references and implementation details. Each object states its indexing and value conventions.", "数列の定義とデータを読み、関数を試せるオブジェクトカタログです。各項目では添字や値の扱いを明示し、出典となるOEISエントリと実装情報を結びます。")}
+      {t("Explore integer sequences and mathematical constants. Each object distinguishes exact data from approximations and documents its conventions.", "整数列や数学定数を紹介します。各項目では厳密値と近似値を区別し、データの扱いを明示します。")}
     </p>
   </header>
 
@@ -68,5 +72,34 @@ const concepts = resolveObjectEntries(objects, readmes, datasets);
         </article>
       );
     })}
+    {constantEntries.map(({ object, identity, value }) => (
+      <article class="catalog-item">
+        <div class="catalog-item__summary">
+          <div>
+            <p class="concept-card__english">{object.data.name.en}</p>
+            <h2><a href={localizedPath(objectPagePath(identity), locale)}>{object.data.name[locale]}<span aria-hidden="true"> ↗</span></a></h2>
+          </div>
+          <span class="support-badge">{t("Irrational constant", "無理数の定数")}</span>
+        </div>
+        <p>{object.data.translations?.ja?.seo.description && locale === "ja" ? object.data.translations.ja.seo.description : object.data.seo.description}</p>
+        <dl class="definition-grid">
+          <div>
+            <dt>{t("Exact value", "厳密値")}</dt>
+            <dd><code>{value.data.symbol} = {value.data.exactValue}</code></dd>
+          </div>
+          <div>
+            <dt>{t("Decimal approximation", "小数近似")}</dt>
+            <dd><code>{value.data.decimalApproximation}…</code></dd>
+          </div>
+        </dl>
+        <p class="dataset-links">
+          <a href={`/objects/${identity.id}/data/value.json`} target="_blank" rel="noopener">{t("Value data (JSON)", "値データ（JSON）")}</a>
+        </p>
+        <div class="catalog-item__footer">
+          <p><span class="support-badge">{t("Exact symbolic value", "記号による厳密値")}</span></p>
+          <a class="primary-link" href={localizedPath(objectPagePath(identity), locale)}>{t(`Explore ${object.data.name.en}`, `${object.data.name.ja}の詳細へ`)}</a>
+        </div>
+      </article>
+    ))}
   </div>
 </BaseLayout>

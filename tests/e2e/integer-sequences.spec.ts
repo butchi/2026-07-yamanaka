@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { objectIdentities } from "../../src/lib/objectIdentity";
+import { integerSequenceIdentities as objectIdentities } from "../../src/lib/objectIdentity";
 
 const fibonacciId = objectIdentities[0].id;
 

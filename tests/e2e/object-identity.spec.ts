@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { objectIdentities } from "../../src/lib/objectIdentity";
+import { integerSequenceIdentities, mathematicalConstantIdentities } from "../../src/lib/objectIdentity";
 
-for (const identity of objectIdentities) {
+for (const identity of integerSequenceIdentities) {
   test(`${identity.slug}: UUID resources and stable reference use the public slug`, async ({ page, request }) => {
     await page.goto(`/id/${identity.id}/`);
     await page.waitForURL(`**/numbers/${identity.slug}/`);
@@ -11,6 +11,17 @@ for (const identity of objectIdentities) {
     const response = await request.get(`/objects/${identity.id}/data/digest.json`);
     expect(response.ok()).toBeTruthy();
     expect(await response.json()).toMatchObject({ objectId: identity.id });
+  });
+}
+
+for (const identity of mathematicalConstantIdentities) {
+  test(`${identity.slug}: permanent reference redirects to its object page`, async ({ page, request }) => {
+    await page.goto(`/id/${identity.id}/`);
+    await page.waitForURL(`**/constants/${identity.slug}/`);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/constants/${identity.slug}/$`));
+    const response = await request.get(`/objects/${identity.id}/data/value.json`);
+    expect(response.ok()).toBeTruthy();
+    expect(await response.json()).toMatchObject({ objectId: identity.id, format: "decimal-constant" });
   });
 }
 
