@@ -243,6 +243,10 @@ a:hover {
   font-weight: 750;
 }
 
+.support-badge + .support-badge {
+  margin-inline-start: 0.5rem;
+}
+
 .type-comparison code {
   display: block;
   max-width: 100%;
