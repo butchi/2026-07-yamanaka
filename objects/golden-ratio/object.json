@@ -8,13 +8,13 @@
   "relatedObjectIds": ["01a15005-fe79-7ac4-bfaf-8b8e82577063"],
   "seo": {
     "title": "Golden ratio — Exact value and decimal approximation | Libra",
-    "description": "Explore the golden ratio φ with its exact radical form, a clearly labeled decimal approximation, and mathematical properties."
+    "description": "Explore the golden ratio Φ and its reciprocal φ with exact radical forms, clearly labeled decimal approximations, and mathematical properties."
   },
   "translations": {
     "ja": {
       "seo": {
         "title": "黄金比 — 厳密値と小数近似｜Libra",
-        "description": "黄金比φの根号による厳密値、小数近似、数学的な性質を紹介します。"
+        "description": "黄金比Φとその逆数φの根号による厳密値、小数近似、数学的な性質を紹介します。"
       }
     }
   }

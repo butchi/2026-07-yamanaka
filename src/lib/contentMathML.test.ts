@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isSafeContentMathML } from "./contentMathML";
 
-const goldenRatioContentMathML = '<math xmlns="http://www.w3.org/1998/Math/MathML"><apply><eq/><ci>φ</ci><apply><divide/><apply><plus/><cn>1</cn><apply><root/><cn>5</cn></apply></apply><cn>2</cn></apply></apply></math>';
-const goldenRatioPresentationMathML = '<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi>φ</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><msqrt><mn>5</mn></msqrt></mrow><mn>2</mn></mfrac></mrow></math>';
+const goldenRatioContentMathML = '<math xmlns="http://www.w3.org/1998/Math/MathML"><apply><eq/><ci>Φ</ci><apply><divide/><apply><plus/><cn>1</cn><apply><root/><cn>5</cn></apply></apply><cn>2</cn></apply></apply></math>';
+const goldenRatioPresentationMathML = '<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mi>Φ</mi><mo>=</mo><mfrac><mrow><mn>1</mn><mo>+</mo><msqrt><mn>5</mn></msqrt></mrow><mn>2</mn></mfrac></mrow></math>';
 
 describe("Content MathML validation", () => {
   it("accepts the golden ratio's well-formed Content MathML", () => {
