@@ -169,6 +169,10 @@ a:hover {
   background: var(--color-accent-soft);
 }
 
+.concept-identifiers + .notice {
+  margin-block-start: 1.5rem;
+}
+
 .notice--warning {
   border-left-color: #a66300;
   background: #fff4d8;
