@@ -1,3 +1,5 @@
+import { text, type Locale } from "./i18n";
+
 export type IntegerResultValue = number | bigint;
 export type RawOperationResult =
   IntegerResultValue | boolean | IntegerResultValue[];
@@ -82,6 +84,7 @@ export function serializeCsv(result: RawOperationResult): string {
 export function formatDisplay(
   result: RawOperationResult,
   maxItems?: number,
+  locale: Locale = "en",
 ): { value: string; truncated: boolean } {
   if (
     !Array.isArray(result) ||
@@ -96,16 +99,17 @@ export function formatDisplay(
   const values = visible.map((value) => literal(value, true)).join(", ");
 
   return {
-    value: `[${values}, …]（残り${omitted.toLocaleString("ja-JP")}件）`,
+    value: `[${values}, …]${text(locale, ` (${omitted.toLocaleString("en-US")} more)`, `（残り${omitted.toLocaleString("ja-JP")}件）`)}`,
     truncated: true,
   };
 }
 
 export function formatOutput(
   result: RawOperationResult,
-  options: { maxDisplayedItems?: number } = {},
+  options: { maxDisplayedItems?: number; locale?: Locale } = {},
 ): FormattedOutput {
-  const display = formatDisplay(result, options.maxDisplayedItems);
+  const locale = options.locale ?? "en";
+  const display = formatDisplay(result, options.maxDisplayedItems, locale);
   const hasBigInt = containsBigInt(result);
 
   return {
@@ -113,7 +117,7 @@ export function formatOutput(
     javascript: formatLiteralResult(result, true),
     json: serializeJson(result),
     csv: serializeCsv(result),
-    jsonNote: hasBigInt ? bigintJsonNote : undefined,
+    jsonNote: hasBigInt ? text(locale, "BigInt values are exported as decimal strings because JSON cannot represent BigInt directly.", bigintJsonNote) : undefined,
     displayWasTruncated: display.truncated,
   };
 }

@@ -1,18 +1,18 @@
-# 平方数
+# Square numbers
 
-非負整数 $`n`$ を自分自身に掛けた $`n^2`$ の形で表せる整数です。$`0^2`$ を含むため0も平方数です。
+Integers of the form $`n^2`$, obtained by multiplying a nonnegative integer $`n`$ by itself. This includes $`0^2`$, so 0 is a square.
 
-## 注記
+## Notes
 
-- 平方数は0、1、4、9のように小さい順へ厳密に増加します。
-- `has(value)` は整数の平方として表せるかを判定し、平方根の近似値だけを結果として返す操作ではありません。
-- `next(value)` はvalueより厳密に大きい最小の平方数を返します。value自身が平方数でも同じ値は返しません。
+- The sequence 0, 1, 4, 9, … is strictly increasing.
+- `has(value)` tests whether the value is an integer square; it does not merely return an approximate square root.
+- `next(value)` returns the smallest square strictly greater than value, even when value itself is a square.
 
-## 他の数との組み合わせ
+## Relationships with other numbers
 
-### 平方数でもあるフィボナッチ数を探す
+### Find Fibonacci numbers that are also squares
 
-BigInt版のフィボナッチ数を生成し、平方数の所属判定で絞り込みます。
+Generate Fibonacci numbers with BigInt and filter them by square membership.
 
 ```javascript
 import { bigint, range } from "@butchi/integer-sequences";
@@ -22,9 +22,9 @@ const fibonacciSquares = range(100)
   .filter(bigint.square.has);
 ```
 
-### 1を足すと素数になる平方数を探す
+### Find squares whose successor is prime
 
-最初の100個の平方数から、1を足した値が素数になるものを抽出します。
+From the first 100 squares, select those for which adding 1 gives a prime.
 
 ```javascript
 import { number } from "@butchi/integer-sequences";
@@ -34,9 +34,9 @@ const squaresBeforePrimes = number.square
   .filter((square) => number.prime.has(square + 1));
 ```
 
-### ピタゴラス数の組を探す
+### Find Pythagorean triples
 
-2辺 $`a`$、$`b`$ の二乗和 $`a^2 + b^2`$ が平方数になる組を探し、整数の斜辺 $`c`$ を求めます。
+Find pairs whose sum of squares $`a^2 + b^2`$ is itself a square, then obtain the integer hypotenuse $`c`$.
 
 ```javascript
 import { number, range } from "@butchi/integer-sequences";

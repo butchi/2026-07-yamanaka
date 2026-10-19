@@ -41,6 +41,21 @@ const datasets = objectIdentities.flatMap(({ id: objectId, slug }) => {
 });
 
 describe("object content pairing", () => {
+  it("allows English-only objects and pairs Japanese text with its SEO without duplicating identity", () => {
+    const translations = { ja: { seo: { title: "日本語", description: "説明" } } };
+    const localized = dataEntries.map((entry, index) => index === 0 ? { ...entry, data: { ...entry.data, translations } } : entry);
+    const japanese = { id: "fibonacci/ja", body: "# フィボナッチ数\n\n定義" };
+    const entries = resolveObjectEntries(localized, [...readmes, japanese], datasets);
+    expect(entries[0].readme).toBe(readmes[0]);
+    expect(entries[0].japaneseReadme).toBe(japanese);
+    expect(entries[1].japaneseReadme).toBeUndefined();
+    expect(entries[0].identity.id).toBe(fibonacci.id);
+    expect(entries[1].relatedObjects.find(({ identity }) => identity.id === fibonacci.id)?.hasJapanese).toBe(true);
+    expect(() => resolveObjectEntries(localized, readmes, datasets)).toThrow(/Japanese README and SEO/);
+    expect(() => resolveObjectEntries(dataEntries, [...readmes, japanese], datasets)).toThrow(/Japanese README and SEO/);
+    expect(() => resolveObjectEntries(localized, [...readmes, { ...japanese, body: " " }], datasets)).toThrow(/must not be empty/);
+  });
+
   it("joins metadata, Markdown, persisted datasets, and calculation adapters by ID", () => {
     const entries = resolveObjectEntries(
       [...dataEntries].reverse(),

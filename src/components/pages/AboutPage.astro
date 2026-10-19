@@ -1,0 +1,103 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { github } from "@/lib/github";
+import { localeFromPath, text } from "@/lib/i18n";
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
+---
+
+<BaseLayout
+  title={t("About Libra — Design principles", "Libraについて — 設計方針")}
+  description={t("Libra's object model, contribution process on GitHub and the Miyaburu concept.", "Libraが目指す数学・工学オブジェクトのデータ、関数、ドキュメントの統合、GitHubを活用した投稿方針、Miyaburu構想について説明します。")}
+  breadcrumbs={[{ label: t("Project", "プロジェクト") }]}
+>
+  <header class="page-header">
+    <p class="eyebrow">ABOUT LIBRA</p>
+    <h1>{t("Knowledge you can reference and use.", "知識を、参照できて、使えるものに。")}</h1>
+    <p class="lead">
+      {t("Libra (working title) is a knowledge base for mathematical and engineering objects. Starting with sequences, it brings reliable data, precise function contracts and helpful documentation together.", "Libra（仮称）は、数学的・工学的オブジェクトを項目ごとにまとめる知識ベースです。数列を入り口に、信頼できるデータ、厳密な関数仕様、理解を助けるドキュメントをひとつの場所に整えます。")}
+    </p>
+  </header>
+
+  <section class="page-section" aria-labelledby="why-heading">
+    <p class="eyebrow">WHY LIBRA</p>
+    <h2 id="why-heading">{t("From rich knowledge to a reusable Web", "OEISの豊かな知識を、再利用しやすいWebへ")}</h2>
+    <p>
+      {t("Inspired by OEIS, Libra uses modern Web standards to make objects easier to discover and use. Explicit indices, types, boundaries and input/output contracts make data reusable by people and programs.", "OEISのように数学的な対象を横断して調べられる強みを土台に、現代のWeb標準を活用して見つけやすさと使いやすさを高めます。特に、数値列の添字、型、境界、関数の入出力といった曖昧になりやすい部分を明示し、データを人にもプログラムにも再利用しやすくすることを重視します。")}
+    </p>
+    <p>
+      {t("Other inspirations include MathWorld, Wolfram Function Repository, Wikipedia and Rosetta Code. Data and function quality come first, supported by useful documentation.", "MathWorldの解説、Wolfram Function Repositoryの関数、Wikipediaの項目構成、Rosetta Codeの実装例から着想を得つつ、まずはデータと関数の品質を優先し、そのうえでドキュメントとしても役立つ項目を育てます。")}
+    </p>
+  </section>
+
+  <section class="page-section" aria-labelledby="model-heading">
+    <p class="eyebrow">OBJECT MODEL</p>
+    <h2 id="model-heading">{t("One object, three perspectives", "ひとつの対象を、三つの面から記述")}</h2>
+    <div class="feature-grid libra-pillars">
+      <article>
+        <span class="pillar-number">01 / DATA</span>
+        <h3>{t("Data", "データ")}</h3>
+        <p>{t("Machine-readable data with explicit domains, indices, values, units and references.", "定義域、添字、値、単位、出典といったデータの意味を明確にし、機械可読な形で提供します。")}</p>
+      </article>
+      <article>
+        <span class="pillar-number">02 / FUNCTIONS</span>
+        <h3>{t("Functions", "関数")}</h3>
+        <p>{t("Computations and tests with documented arguments, return values and constraints.", "対象に関する計算や判定を、引数・戻り値・制約がわかる関数として公開します。")}</p>
+      </article>
+      <article>
+        <span class="pillar-number">03 / DOCUMENTATION</span>
+        <h3>{t("Documentation", "ドキュメント")}</h3>
+        <p>{t("Definitions, properties, references, examples and implementation caveats.", "定義、性質、出典、例、実装上の注意を集約し、知識を読み解くための入口にします。")}</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="page-section split-section" aria-labelledby="contribution-heading">
+    <div>
+      <p class="eyebrow">CONTRIBUTION</p>
+      <h2 id="contribution-heading">{t("Contributions with a traceable rationale", "変更の根拠を残す投稿フロー")}</h2>
+      <p>
+        {t("GitHub provides traceable proposals, diffs, evidence and discussion. Definitions and data should remain verifiable through their change history.", "投稿とレビューには基本的にGitHubを使い、提案、差分、根拠、議論を追跡できる形にする方針です。自動投稿やユーザーアカウントに依存せず、項目の定義とデータを変更履歴とともに検証できる運用を目指します。")}
+      </p>
+      <p>
+        {t("Contribute to", "現在の暫定的な投稿先は")} <code>butchi/2026-07-yamanaka</code>:
+        <strong><code>{github.contributionBranch}</code> {t("branch", "ブランチ")}</strong>.
+        {t("Set the pull request base to", "プルリクエストのマージ先（base）は")} <code>{github.contributionBranch}</code>.
+      </p>
+      <ol>
+        <li>{t("Sign in to GitHub and fork the repository from the branch linked below.", "GitHubにログインし、下のリンクから投稿先のブランチを開いてリポジトリをForkします。")}</li>
+        <li>{t("Create a working branch from your fork's develop, then commit and push. Each object also links to GitHub's file editor.", "Forkのdevelopから作業ブランチを作成し、変更をコミット・pushします。各項目の編集リンクからGitHub上でファイルを編集することもできます。")}</li>
+        <li>{t('Open the PR creation link. Use "compare across forks" to select your fork and branch; check that the base repository is butchi/2026-07-yamanaka and the base branch is develop.', '「PRを作成する」を開き、必要に応じて「compare across forks」で自分のForkと作業ブランチを選びます。base repositoryがbutchi/2026-07-yamanaka、baseがdevelopであることを確認します。')}</li>
+        <li>{t("Review the diff and submit with your rationale, references and verification results.", "差分を確認し、変更理由・出典・確認した内容を添えてプルリクエストを送信します。")}</li>
+      </ol>
+      <nav class="hero-actions" aria-label="GitHubへの投稿">
+        <a class="primary-link" href={github.compareUrl}>{t("Create a PR (GitHub)", "PRを作成する（GitHub）")}</a>
+        <a href={github.treeUrl}>{t("View the develop branch", "投稿先のdevelopブランチを見る")}</a>
+        <a href={`${github.treeUrl}/README.md#新規項目の作成登録`}>{t("Object creation guide (Japanese)", "新規項目の作成・登録手順")}</a>
+      </nav>
+      <p>
+        {t("Use", "新規項目は")} <code>pnpm object:create</code>
+        {t("to create an English draft and metadata; no manual UUID generation is needed. A maintainer can register hand-written contributions using the same command or manual GitHub Actions. Keep the PR in Draft until data and implementations are complete.", "で本文雛形とメタデータを作成できます。UUIDの手動発行は不要です。本文だけを手作業で投稿する場合は、メンテナーが同じコマンド、または手動実行のGitHub Actionsで登録を補完します。データや計算実装を含む公開条件がそろうまではDraft PRとして扱ってください。")}
+      </p>
+    </div>
+    <div class="notice">
+      <strong>{t("Current status: ", "現在の段階：")}</strong>
+      {t("This early rebuild covers Fibonacci numbers, primes and squares. GitHub contributions require an account; use a fork if you lack write access. On-site submission and comprehensive object schemas are future work.", "このサイトは再構築の初期段階で、公開項目はフィボナッチ数・素数・平方数です。GitHubでの編集・投稿にはGitHubアカウントが必要です。直接の書き込み権限がない場合はForkから提案してください。サイト内での投稿機能や、網羅的なオブジェクトスキーマは今後整備する計画です。")}
+    </div>
+  </section>
+
+  <section class="page-section relation-grid" aria-labelledby="future-heading">
+    <div>
+      <p class="eyebrow">ROADMAP</p>
+      <h2 id="future-heading">{t("Web standards and Matra", "標準Webとマトラ言語")}</h2>
+    </div>
+    <article>
+      <h3>Libra</h3>
+      <p>{t("This project integrates data, functions and documentation for mathematical and engineering objects using Web standards.", "Web標準技術を基盤に、数学・工学オブジェクトのデータ、関数、ドキュメントを統合する本プロジェクトです。")}</p>
+    </article>
+    <article>
+      <h3>{t("Miyaburu (concept)", "Miyaburu（構想）")}</h3>
+      <p>{t("A proposed sister project exploring site generation, data representation and documentation with the Matra language. It remains at the planning stage.", "マトラ言語によるサイト生成、データ表現、ドキュメント構築の有効性を示す姉妹プロジェクトとして構想しています。現時点では計画段階です。")}</p>
+    </article>
+  </section>
+</BaseLayout>

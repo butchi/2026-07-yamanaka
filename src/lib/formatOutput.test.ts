@@ -18,7 +18,7 @@ describe("formatOutput", () => {
   });
 
   it("serializes BigInt as JSON decimal strings with an explanation", () => {
-    const output = formatOutput([0n, 1n, 2n]);
+    const output = formatOutput([0n, 1n, 2n], { locale: "ja" });
 
     expect(output.json).toBe('[\n  "0",\n  "1",\n  "2"\n]');
     expect(output.jsonNote).toBe(bigintJsonNote);
@@ -39,7 +39,7 @@ describe("formatOutput", () => {
   it("truncates only the human-facing display", () => {
     const output = formatOutput([0, 1, 2, 3], { maxDisplayedItems: 2 });
 
-    expect(output.display).toBe("[0, 1, …]（残り2件）");
+    expect(output.display).toBe("[0, 1, …] (2 more)");
     expect(output.javascript).toBe("[0, 1, 2, 3]");
     expect(output.displayWasTruncated).toBe(true);
   });

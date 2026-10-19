@@ -4,7 +4,10 @@ import { objectIdentities, type ObjectIdentity, validateObjectIdentities } from 
 export function resolveObjectEntries<
   DataEntry extends {
     id: string;
-    data: { id: string; conceptId: string; relatedObjectIds: readonly string[] };
+    data: {
+      id: string; conceptId: string; relatedObjectIds: readonly string[];
+      translations?: { ja?: { seo: { title: string; description: string } } };
+    };
   },
   ReadmeEntry extends { id: string; body?: string },
   DatasetEntry extends {
@@ -47,7 +50,8 @@ export function resolveObjectEntries<
   }
   const seenReadmes = new Set<string>();
   for (const entry of readmes) {
-    if (!sourceDirectories.has(entry.id) || seenReadmes.has(entry.id)) {
+    const directory = entry.id.replace(/\/ja$/, "");
+    if (!sourceDirectories.has(directory) || seenReadmes.has(entry.id)) {
       throw new Error(`Unknown or duplicate object README directory "${entry.id}".`);
     }
     seenReadmes.add(entry.id);
@@ -92,6 +96,13 @@ export function resolveObjectEntries<
     }
     const sourceDirectory = object.id;
     const readme = readmesById.get(sourceDirectory);
+    const japaneseReadme = readmesById.get(`${sourceDirectory}/ja`);
+    if (Boolean(japaneseReadme) !== Boolean(object.data.translations?.ja)) {
+      throw new Error(`Japanese README and SEO must be provided together for "${sourceDirectory}".`);
+    }
+    if (japaneseReadme && !japaneseReadme.body?.trim()) {
+      throw new Error(`Japanese README must not be empty for "${sourceDirectory}".`);
+    }
     const digest = datasetsById.get(`${sourceDirectory}/data/digest`);
     const standard = datasetsById.get(`${sourceDirectory}/data/standard`);
     if (!readme?.body?.trim()) {
@@ -118,7 +129,7 @@ export function resolveObjectEntries<
         throw new Error(`Invalid or duplicate related object "${relatedId}" in objects/${sourceDirectory}/object.json.`);
       }
       seenRelated.add(relatedId);
-      return { identity: relatedIdentity, concept: conceptRegistry[relatedConceptId] };
+      return { identity: relatedIdentity, concept: conceptRegistry[relatedConceptId], hasJapanese: Boolean(relatedObject?.data.translations?.ja) };
     });
 
     return {
@@ -127,6 +138,7 @@ export function resolveObjectEntries<
       concept: conceptRegistry[conceptId],
       object,
       readme,
+      japaneseReadme,
       digest,
       standard,
       relatedObjects,

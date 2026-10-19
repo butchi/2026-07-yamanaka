@@ -8,6 +8,13 @@ const renderer = await satteri({
 const file = { fileURL: new URL("file:///project/objects/fibonacci/README.md") };
 
 describe("object README headings", () => {
+  it("applies the same heading rules to Japanese translations", async () => {
+    const result = await renderer.render("# 日本語\n\n## 詳細\n\n本文\n", {
+      fileURL: new URL("file:///project/objects/fibonacci/README.ja.md"),
+    });
+    expect(result.code).not.toContain("<h1");
+    expect(result.metadata.headings.map(({ depth }) => depth)).toEqual([3]);
+  });
   it("omits the title and nests sections under the layout heading", async () => {
     const result = await renderer.render("# Title\n\nText\n\n## Notes\n\n### Example\n", file);
     expect(result.code).not.toContain("<h1");

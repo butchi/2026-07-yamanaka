@@ -1,0 +1,72 @@
+---
+import OperationAvailability from "@/components/concept/OperationAvailability.astro";
+import StaticSequenceList from "@/components/concept/StaticSequenceList.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { resolveObjectEntries } from "@/lib/objectEntries";
+import { objectPagePath } from "@/lib/objectIdentity";
+import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
+
+const [objects, readmes, datasets] = await Promise.all([
+  getCollection("objects"),
+  getCollection("objectReadmes"),
+  getCollection("datasets"),
+]);
+const concepts = resolveObjectEntries(objects, readmes, datasets);
+---
+
+<BaseLayout
+  title={t("Integer sequence catalog | Libra", "整数列カタログ｜Libra")}
+  description={t("Definitions, exact data and functions for Fibonacci numbers, primes and squares.", "フィボナッチ数、素数、平方数のデータ、数学的な定義、利用可能な関数をまとめたLibraの整数列カタログです。")}
+  breadcrumbs={[{ label: t("Catalog", "カタログ") }, { label: t("Integer sequences", "整数列") }]}
+>
+  <header class="page-header">
+    <p class="eyebrow">LIBRA / CATALOG / SEQUENCES</p>
+    <h1>{t("Integer sequence catalog", "整数列カタログ")}</h1>
+    <p class="lead">
+      {t("Read definitions and data, try functions, and explore OEIS references and implementation details. Each object states its indexing and value conventions.", "数列の定義とデータを読み、関数を試せるオブジェクトカタログです。各項目では添字や値の扱いを明示し、出典となるOEISエントリと実装情報を結びます。")}
+    </p>
+  </header>
+
+  <div class="catalog-list">
+    {concepts.map(({ concept, identity, digest, japaneseReadme }) => {
+      const target = localizedPath(objectPagePath(identity), japaneseReadme ? locale : "en");
+      const availability = {
+        number: concept.capabilities.number.map(({ operation }) => operation),
+        bigint: concept.capabilities.bigint.map(({ operation }) => operation),
+      };
+
+      return (
+        <article class="catalog-item">
+          <div class="catalog-item__summary">
+            <div>
+              <p class="concept-card__english">{concept.meta.name.en}</p>
+              <h2><a href={target}>{concept.meta.name[locale]}<span aria-hidden="true"> ↗</span></a></h2>
+            </div>
+            <div class="catalog-item__identifiers">
+              {concept.meta.oeis?.map((oeis) => (
+                <a href={`https://oeis.org/${oeis}`} aria-label={t(`View ${oeis} on OEIS`, `${oeis}をOEISで見る`)}>{oeis}</a>
+              ))}
+            </div>
+          </div>
+          <p>{concept.meta.description?.[locale]}</p>
+          <StaticSequenceList values={digest.data.terms.slice(0, 10)} />
+          <p class="dataset-links">
+            <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON (16 terms)", "ダイジェストJSON（16項）")}</a>
+            <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 terms)", "標準JSON（256項）")}</a>
+          </p>
+          <OperationAvailability availability={availability} />
+          <div class="catalog-item__footer">
+            <p>
+              <span class="support-badge">{t("Number supported", "Number対応")}</span>
+              <span class="support-badge">{t("BigInt supported", "BigInt対応")}</span>
+            </p>
+            <a class="primary-link" href={target}>{locale === "ja" && !japaneseReadme ? "日本語版は未提供・英語版を見る" : t(`Explore ${concept.meta.name.en}`, `${concept.meta.name.ja}の詳細へ`)}</a>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</BaseLayout>

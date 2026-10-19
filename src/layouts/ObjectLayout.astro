@@ -9,6 +9,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { github } from "@/lib/github";
 import { type ObjectIdentity, objectPagePath } from "@/lib/objectIdentity";
 import { compileObjectModule } from "@/lib/objectModules";
+import { localeFromPath, localizedPath, operationLabels as labelsFor, text } from "@/lib/i18n";
 import {
   type ConceptRegistryEntry,
   type UiOperation,
@@ -21,13 +22,18 @@ interface Props {
   object: CollectionEntry<"objects">;
   readme: CollectionEntry<"objectReadmes">;
   digest: CollectionEntry<"datasets">;
-  relatedObjects: readonly { identity: ObjectIdentity; concept: ConceptRegistryEntry }[];
+  relatedObjects: readonly { identity: ObjectIdentity; concept: ConceptRegistryEntry; hasJapanese: boolean }[];
 }
 
 const { concept, identity, sourceDirectory, object, readme, digest, relatedObjects } = Astro.props;
 const { meta } = concept;
 const objectPath = `objects/${sourceDirectory}`;
 const content = object.data;
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
+const path = (value: string) => localizedPath(value, locale);
+const seo = locale === "ja" ? content.translations?.ja?.seo : content.seo;
+if (!seo) throw new Error(`Missing ${locale} SEO for "${identity.id}".`);
 const { Content } = await render(readme);
 const moduleSources = import.meta.glob<string>("../../objects/*/functions.source.js", {
   query: "?raw",
@@ -40,13 +46,7 @@ if (!sourceModule) {
 }
 const moduleSource = await compileObjectModule(sourceModule, "global");
 
-const operationLabels: Record<UiOperation, string> = {
-  term: "第n項",
-  take: "最初のn項",
-  upTo: "指定値以下",
-  has: "所属判定",
-  next: "次の該当数",
-};
+const operationLabels = labelsFor(locale);
 
 const availability = {
   number: concept.capabilities.number.map(({ operation }) => operation),
@@ -62,7 +62,7 @@ const implementations = (["number", "bigint"] as const).flatMap((numericType) =>
     derivedFrom: metadata.source === "derived" ? metadata.derivedFrom : undefined,
     implementationId: metadata.source === "native" ? metadata.implementationId : undefined,
     algorithmId: metadata.source === "native" ? metadata.algorithmId : undefined,
-    algorithmName: algorithm?.name.ja,
+    algorithmName: algorithm?.name[locale],
     complexity: metadata.source === "native" ? metadata.complexity : undefined,
     verification: metadata.source === "native" ? metadata.verification : undefined,
     benchmarkId: metadata.source === "native" ? metadata.benchmarkId : undefined,
@@ -82,46 +82,47 @@ const codeExamples = (["number", "bigint"] as const).map((numericType) => ({
 })).filter(({ code }) => code.length > 0);
 
 const orderDescription = meta.order === "strictly-increasing"
-  ? "重複なく、値が厳密に増加する列"
+  ? t("Strictly increasing, without duplicates", "重複なく、値が厳密に増加する列")
   : meta.order === "nondecreasing"
-    ? "同じ値を含む場合があり、値が減少しない列"
-    : "一定の増加順序を仮定しない列";
+    ? t("Nondecreasing; repeated values may occur", "同じ値を含む場合があり、値が減少しない列")
+    : t("No increasing order is assumed", "一定の増加順序を仮定しない列");
 const includesZero = digest.data.terms.includes("0");
 ---
 
 <BaseLayout
-  title={content.seo.title}
-  description={content.seo.description}
+  title={seo.title}
+  description={seo.description}
+  hasJapanese={Boolean(content.translations?.ja)}
   ogType="article"
-  canonical={objectPagePath(identity)}
+  canonical={path(objectPagePath(identity))}
   breadcrumbs={[
-    { label: "数の一覧", href: "/numbers/" },
-    { label: meta.name.ja },
+    { label: t("Numbers", "数の一覧"), href: path("/numbers/") },
+    { label: meta.name[locale] },
   ]}
 >
   <article class="concept-page">
     <header class="page-header concept-header">
       <p class="eyebrow">{meta.name.en}</p>
-      <h1>{meta.name.ja}</h1>
-      <p class="lead">{meta.description?.ja}</p>
+      <h1>{meta.name[locale]}</h1>
+      <p class="lead">{meta.description?.[locale]}</p>
       <div class="concept-identifiers">
         {meta.oeis?.map((oeis) => (
-          <a href={`https://oeis.org/${oeis}`} aria-label={`${oeis}をOEISで見る`}>OEIS {oeis}</a>
+          <a href={`https://oeis.org/${oeis}`} aria-label={t(`View ${oeis} on OEIS`, `${oeis}をOEISで見る`)}>OEIS {oeis}</a>
         ))}
-        <span>公開API: 0始まり</span>
-        <span>{includesZero ? "0を含む" : "0を含まない"}</span>
-        <a href={`/id/${identity.id}/`}>永続リンク</a>
+        <span>{t("Public API: zero-based", "公開API: 0始まり")}</span>
+        <span>{includesZero ? t("Includes 0", "0を含む") : t("Excludes 0", "0を含まない")}</span>
+        <a href={`/id/${identity.id}/`}>{t("Permanent link", "永続リンク")}</a>
       </div>
-      <aside class="notice" aria-label="この項目への貢献">
-        <strong>この項目を編集・提案する</strong>
-        <p>誤りの修正や補足をGitHubで提案できます。現在のPRのマージ先は <code>{github.contributionBranch}</code> です。</p>
-        <nav class="hero-actions" aria-label="この項目をGitHubで編集">
-          <a href={`${github.editUrl}/${objectPath}/README.md`}>項目のREADMEを編集</a>
-          <a href={`${github.editUrl}/${objectPath}/functions.source.js`}>実装を編集</a>
-          <a href={`${github.treeUrl}/${objectPath}/data`}>データを編集</a>
-          <a href={`${github.treeUrl}/${objectPath}`}>項目のソース</a>
-          <a href={github.compareUrl}>PRを作成する（GitHub）</a>
-          <a href="/about/#contribution-heading">投稿手順</a>
+      <aside class="notice" aria-label={t("Contribute to this object", "この項目への貢献")}>
+        <strong>{t("Edit or improve this object", "この項目を編集・提案する")}</strong>
+        <p>{t("Propose corrections on GitHub. Set the PR base to", "誤りの修正や補足をGitHubで提案できます。現在のPRのマージ先は")} <code>{github.contributionBranch}</code>.</p>
+        <nav class="hero-actions" aria-label={t("Edit this object on GitHub", "この項目をGitHubで編集")}>
+          <a href={`${github.editUrl}/${objectPath}/README${locale === "ja" ? ".ja" : ""}.md`}>{t("Edit the object README", "項目のREADMEを編集")}</a>
+          <a href={`${github.editUrl}/${objectPath}/functions.source.js`}>{t("Edit implementation", "実装を編集")}</a>
+          <a href={`${github.treeUrl}/${objectPath}/data`}>{t("Edit data", "データを編集")}</a>
+          <a href={`${github.treeUrl}/${objectPath}`}>{t("Object source", "項目のソース")}</a>
+          <a href={github.compareUrl}>{t("Create a PR (GitHub)", "PRを作成する（GitHub）")}</a>
+          <a href={path("/about/#contribution-heading")}>{t("Contribution guide", "投稿手順")}</a>
         </nav>
       </aside>
     </header>
@@ -130,117 +131,118 @@ const includesZero = digest.data.terms.includes("0");
       <div class="section-heading-row">
         <div>
           <p class="eyebrow">DATA / DIGEST</p>
-          <h2 id="first-terms-heading">データ — ダイジェスト16項</h2>
+          <h2 id="first-terms-heading">{t("Data — 16-term digest", "データ — ダイジェスト16項")}</h2>
         </div>
-        <p class="text-muted">保存済みの正確な整数データ（10進文字列・添字0始まり）</p>
+        <p class="text-muted">{t("Persisted exact integers (decimal strings, zero-based indices)", "保存済みの正確な整数データ（10進文字列・添字0始まり）")}</p>
       </div>
       <StaticSequenceList values={[...digest.data.terms]} />
       <p class="dataset-links">
-        <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">ダイジェストJSON（16項）</a>
-        <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">標準JSON（256項）</a>
-        <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">JavaScript APIモジュール</a>
+        <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON (16 terms)", "ダイジェストJSON（16項）")}</a>
+        <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 terms)", "標準JSON（256項）")}</a>
+        <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">{t("JavaScript API module", "JavaScript APIモジュール")}</a>
       </p>
-      <p class="text-muted">データはこのディレクトリ内のJSONファイルから提供されます。計算APIの結果からページ生成時に作り直すことはありません。</p>
+      <p class="text-muted">{t("Data comes from committed JSON files, not regenerated from the calculation API during page generation.", "データはこのディレクトリ内のJSONファイルから提供されます。計算APIの結果からページ生成時に作り直すことはありません。")}</p>
     </section>
 
     <section class="page-section" aria-labelledby="overview-heading">
       <p class="eyebrow">DOCUMENTATION / DEFINITION</p>
-      <h2 id="overview-heading">ドキュメント — 定義と性質</h2>
+      <h2 id="overview-heading">{t("Documentation — Definition and properties", "ドキュメント — 定義と性質")}</h2>
       <div class="object-document">
         <Content />
       </div>
       <dl class="definition-grid">
         <div>
-          <dt>0の扱い</dt>
-          <dd>{includesZero ? "このサイトとライブラリでは0を含みます。" : "この数の集合に0は含まれません。"}</dd>
+          <dt>{t("Zero", "0の扱い")}</dt>
+          <dd>{includesZero ? t("This site and library include 0.", "このサイトとライブラリでは0を含みます。") : t("This set excludes 0.", "この数の集合に0は含まれません。")}</dd>
         </div>
         <div>
-          <dt>公開API上の添字</dt>
-          <dd><code>{meta.indexing.publicOffset}</code> から始まります。</dd>
+          <dt>{t("Public API indexing", "公開API上の添字")}</dt>
+          <dd>{t("Starts at", "開始値：")} <code>{meta.indexing.publicOffset}</code></dd>
         </div>
         <div>
-          <dt>数列として</dt>
+          <dt>{t("Sequence order", "数列として")}</dt>
           <dd>{orderDescription}</dd>
         </div>
         <div>
-          <dt>集合として</dt>
-          <dd>値がこの概念に属するかを <code>has(value)</code> で判定します。</dd>
+          <dt>{t("Set membership", "集合として")}</dt>
+          <dd><code>has(value)</code> {t("tests membership in this concept.", "で値がこの概念に属するかを判定します。")}</dd>
         </div>
         <div>
-          <dt>有限・無限</dt>
-          <dd>{meta.finite ? "有限" : "無限"}</dd>
+          <dt>{t("Size", "有限・無限")}</dt>
+          <dd>{meta.finite ? t("Finite", "有限") : t("Infinite", "無限")}</dd>
         </div>
         <div>
           <dt>OEIS</dt>
-          <dd>{meta.oeis?.join(", ") ?? "登録情報なし"}</dd>
+          <dd>{meta.oeis?.join(", ") ?? t("Not registered", "登録情報なし")}</dd>
         </div>
       </dl>
     </section>
 
     <section class="page-section" aria-labelledby="availability-heading">
       <p class="eyebrow">FUNCTIONS / REFERENCE</p>
-      <h2 id="availability-heading">関数 — 利用可能な操作</h2>
-      <p>表示内容はライブラリの <code>operations</code> 定義と実在する関数から取得しています。</p>
-      <p>対象ディレクトリに、外部パッケージに依存せずコピーして使えるJavaScript実装を保持しています。関数の呼び出し形式はライブラリと共通です。</p>
+      <h2 id="availability-heading">{t("Functions — Available operations", "関数 — 利用可能な操作")}</h2>
+      <p>{t("Availability is derived from the library's operations metadata and actual functions.", "表示内容はライブラリのoperations定義と実在する関数から取得しています。")}</p>
+      <p>{t("The object directory contains a dependency-free JavaScript implementation with the same calling conventions as the library.", "対象ディレクトリに、外部パッケージに依存せずコピーして使えるJavaScript実装を保持しています。関数の呼び出し形式はライブラリと共通です。")}</p>
       <OperationAvailability availability={availability} />
     </section>
 
     <section class="page-section" aria-labelledby="calculator-heading">
       <p class="eyebrow">TRY IT</p>
-      <h2 id="calculator-heading">ブラウザで生成・判定する</h2>
+      <h2 id="calculator-heading">{t("Calculate in your browser", "ブラウザで生成・判定する")}</h2>
       <ConceptCalculator
         conceptId={concept.id}
-        conceptName={meta.name.ja}
+        conceptName={meta.name[locale]}
         availability={availability}
       />
     </section>
 
     <section class="page-section" aria-labelledby="code-heading">
       <p class="eyebrow">STANDALONE JAVASCRIPT</p>
-      <h2 id="code-heading">JavaScriptコード例</h2>
-      <p>実装全体をコピーし、デベロッパーツールのコンソールにそのまま貼り付けて実行できます。ファイル保存やnpmパッケージのインストールは不要です。複数の対象や同じ実装を続けて貼り付けることもできます。</p>
+      <h2 id="code-heading">{t("JavaScript examples", "JavaScriptコード例")}</h2>
+      <p>{t("Copy the full implementation into your developer console. No files or npm installation are required. You can paste multiple objects or repeat the same implementation.", "実装全体をコピーし、デベロッパーツールのコンソールにそのまま貼り付けて実行できます。ファイル保存やnpmパッケージのインストールは不要です。複数の対象や同じ実装を続けて貼り付けることもできます。")}</p>
       <details data-testid="standalone-module">
-        <summary>依存なしの実装を表示・コピー</summary>
-        <CodeBlock code={moduleSource} label="JavaScript実装全体（コンソール用）" />
+        <summary>{t("View and copy the dependency-free implementation", "依存なしの実装を表示・コピー")}</summary>
+        <CodeBlock code={moduleSource} label={t("Full JavaScript implementation (console)", "JavaScript実装全体（コンソール用）")} />
       </details>
-      <p><a href={`/objects/${identity.id}/functions.js`} target="_blank" rel="noopener">実装を表示（functions.js）</a></p>
-      <p>貼り付け後、以下のコードをコンソールで実行できます。関数は <code>libra.number</code> / <code>libra.bigint</code> に登録されます。</p>
+      <p><a href={`/objects/${identity.id}/functions.js`} target="_blank" rel="noopener">{t("View implementation (functions.js)", "実装を表示（functions.js）")}</a></p>
+      <p>{t("After pasting, run the examples below. Functions are registered under", "貼り付け後、以下のコードをコンソールで実行できます。関数の登録先：")} <code>libra.number</code> / <code>libra.bigint</code>.</p>
       <div class="code-example-grid">
         {codeExamples.map(({ numericType, code }) => (
           <CodeBlock
             code={code.split("\n").map((line) => `libra.${line}`).join("\n")}
-            label={numericType === "number" ? "Number版" : "BigInt版"}
+            label={numericType === "number" ? t("Number", "Number版") : t("BigInt", "BigInt版")}
           />
         ))}
       </div>
-      <p>ES moduleとして使う場合は、単体で動作する <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">functions.mjs</a> を保存し、<code>{`import { number, bigint } from "./functions.mjs";`}</code> で読み込めます。関数はエクスポートされ、<code>globalThis.libra</code> への登録は行いません。既存パッケージを使う場合はインポート元を <code>@butchi/integer-sequences</code> に差し替えられます。</p>
+      <p>{t("For ES modules, save", "ES moduleとして使う場合は、単体で動作する")} <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">functions.mjs</a>
+        {t("and import with", "を保存し、")} <code>{`import { number, bigint } from "./functions.mjs";`}</code>.
+        {t("It exports functions without registering globalThis.libra. Alternatively, import from @butchi/integer-sequences.", "関数はエクスポートされ、globalThis.libraへの登録は行いません。既存パッケージを使う場合はインポート元を@butchi/integer-sequencesに差し替えられます。")}</p>
     </section>
 
     <section class="page-section" aria-labelledby="implementation-heading">
       <p class="eyebrow">IMPLEMENTATION</p>
-      <h2 id="implementation-heading">アルゴリズムと実装情報</h2>
+      <h2 id="implementation-heading">{t("Algorithms and implementation details", "アルゴリズムと実装情報")}</h2>
       <p>
-        アルゴリズム名はライブラリの <code>algorithmRegistry</code> から表示します。
-        IDが登録されていない操作は、控えめに「実装情報なし」と表示します。
+        {t("Algorithm names come from the library's algorithmRegistry. Unregistered operations are labeled 'No implementation details'.", "アルゴリズム名はライブラリのalgorithmRegistryから表示します。IDが登録されていない操作は、控えめに「実装情報なし」と表示します。")}
       </p>
       <AlgorithmDetails implementations={implementations} />
     </section>
 
     <section class="page-section" aria-labelledby="related-heading">
       <p class="eyebrow">RELATED</p>
-      <h2 id="related-heading">関連する数</h2>
+      <h2 id="related-heading">{t("Related numbers", "関連する数")}</h2>
       <div class="related-grid">
-        {relatedObjects.map(({ concept: related, identity: relatedIdentity }) => (
-          <a class="related-card" href={objectPagePath(relatedIdentity)}>
+        {relatedObjects.map(({ concept: related, identity: relatedIdentity, hasJapanese }) => (
+          <a class="related-card" href={localizedPath(objectPagePath(relatedIdentity), hasJapanese ? locale : "en")}>
             <span>{related.meta.name.en}</span>
-            <strong>{related.meta.name.ja}</strong>
-            <small>{related.meta.description?.ja}</small>
+            <strong>{related.meta.name[locale]}</strong>
+            <small>{locale === "ja" && !hasJapanese ? "日本語版は未提供・英語版を見る" : related.meta.description?.[locale]}</small>
           </a>
         ))}
         <a class="related-card" href="https://www.npmjs.com/package/@butchi/integer-sequences">
           <span>LIBRARY</span>
           <strong>@butchi/integer-sequences</strong>
-          <small>APIとパッケージ情報をnpmで確認します。</small>
+          <small>{t("View API and package details on npm.", "APIとパッケージ情報をnpmで確認します。")}</small>
         </a>
       </div>
     </section>
@@ -248,13 +250,15 @@ const includesZero = digest.data.terms.includes("0");
 </BaseLayout>
 
 <script>
+  import { localeFromPath, text } from "../lib/i18n";
+  const t = (en: string, ja: string) => text(localeFromPath(location.pathname), en, ja);
   document.querySelectorAll<HTMLPreElement>(".object-document pre").forEach((pre) => {
     const block = document.createElement("copy-code");
     block.className = "code-block";
     block.innerHTML = `
       <div class="code-block__bar">
-        <span>コード例</span>
-        <button type="button" data-copy-code>コードをコピー</button>
+        <span>${t("Code example", "コード例")}</span>
+        <button type="button" data-copy-code>${t("Copy code", "コードをコピー")}</button>
       </div>
       <span class="visually-hidden" aria-live="polite" data-copy-status></span>
     `;

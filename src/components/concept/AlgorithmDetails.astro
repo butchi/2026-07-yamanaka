@@ -1,4 +1,5 @@
 ---
+import { localeFromPath, text } from "@/lib/i18n";
 interface ImplementationInfo {
   numericType: "number" | "bigint";
   operation: string;
@@ -18,13 +19,15 @@ interface Props {
 }
 
 const { implementations } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
 const complexityLabels: Record<string, string> = {
-  time: "時間計算量",
-  space: "空間計算量",
-  arithmeticSteps: "算術ステップ",
-  bitComplexity: "ビット計算量",
-  outputSize: "出力量",
-  notes: "補足",
+  time: t("Time complexity", "時間計算量"),
+  space: t("Space complexity", "空間計算量"),
+  arithmeticSteps: t("Arithmetic steps", "算術ステップ"),
+  bitComplexity: t("Bit complexity", "ビット計算量"),
+  outputSize: t("Output size", "出力量"),
+  notes: t("Notes", "補足"),
 };
 ---
 
@@ -34,12 +37,12 @@ const complexityLabels: Record<string, string> = {
       <summary>
         <span>{item.operationLabel}</span>
         <span class="type-badge">{item.numericType === "number" ? "Number" : "BigInt"}</span>
-        <span>{item.algorithmName ?? "実装情報なし"}</span>
+        <span>{item.algorithmName ?? t("No implementation details", "実装情報なし")}</span>
       </summary>
       <dl class="definition-grid definition-grid--compact">
         <div>
-          <dt>実装</dt>
-          <dd>{item.source === "native" ? "ネイティブ実装" : `派生実装（${item.derivedFrom ?? "既存操作"}から生成）`}</dd>
+          <dt>{t("Implementation", "実装")}</dt>
+          <dd>{item.source === "native" ? t("Native implementation", "ネイティブ実装") : t(`Derived from ${item.derivedFrom ?? "another operation"}`, `派生実装（${item.derivedFrom ?? "既存操作"}から生成）`)}</dd>
         </div>
         {item.implementationId && (
           <div>
@@ -56,21 +59,21 @@ const complexityLabels: Record<string, string> = {
         {item.complexity && Object.entries(item.complexity).map(([key, value]) => (
           <div>
             <dt>{complexityLabels[key] ?? key}</dt>
-            <dd>{value}</dd>
+            <dd lang="en">{value}</dd>
           </div>
         ))}
         {item.verification && (
           <div>
-            <dt>検証方法</dt>
+            <dt>{t("Verification method", "検証方法")}</dt>
             <dd>
-              {item.verification.method}
-              {item.verification.maxInput != null && `（最大入力: ${item.verification.maxInput}）`}
+              <span lang="en">{item.verification.method}</span>
+              {item.verification.maxInput != null && t(` (maximum input: ${item.verification.maxInput})`, `（最大入力: ${item.verification.maxInput}）`)}
             </dd>
           </div>
         )}
         {item.benchmarkId && (
           <div>
-            <dt>ベンチマーク参照ID</dt>
+            <dt>{t("Benchmark reference ID", "ベンチマーク参照ID")}</dt>
             <dd><code>{item.benchmarkId}</code></dd>
           </div>
         )}

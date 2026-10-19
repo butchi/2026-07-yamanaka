@@ -1,18 +1,18 @@
-# 素数
+# Prime numbers
 
-1と自分自身だけを正の約数に持つ、2以上の整数です。1は素数に含まれません。
+Integers at least 2 whose only positive divisors are 1 and themselves. The number 1 is not prime.
 
-## 注記
+## Notes
 
-- 素数は2から始まり、同じ値を重複せず小さい順に並ぶ数列として扱えます。
-- `next(value)` は数列上の次の添字ではなく、valueより厳密に大きい最小の素数を返します。
-- 大きな整数の素数判定は正確でも計算に時間がかかる場合があります。入力規模を確認して利用してください。
+- The sequence begins at 2 and is strictly increasing, without duplicates.
+- `next(value)` returns the smallest prime strictly greater than value, not the next index in the sequence.
+- Exact primality testing of large integers may be expensive. Consider the input size before running it.
 
-## 他の数との組み合わせ
+## Relationships with other numbers
 
-### フィボナッチ素数を抽出する
+### Find Fibonacci primes
 
-Number版で安全に生成できるフィボナッチ数を、素数の所属判定で絞り込みます。
+Filter Fibonacci numbers that can be generated safely with Number for primality.
 
 ```javascript
 import { number, range } from "@butchi/integer-sequences";
@@ -22,9 +22,9 @@ const fibonacciPrimes = range(79)
   .filter(number.prime.has);
 ```
 
-### 平方数より1大きい素数を探す
+### Find primes one greater than a square
 
-最初の100個の平方数に1を足し、その値が素数かどうかを判定します。
+Add 1 to each of the first 100 squares and test the results for primality.
 
 ```javascript
 import { number } from "@butchi/integer-sequences";
@@ -35,9 +35,9 @@ const primesAfterSquares = number.square
   .filter(number.prime.has);
 ```
 
-### ソフィー・ジェルマン素数を探す
+### Find Sophie Germain primes
 
-素数 $`p`$ のうち、$`2p + 1`$ も素数になるものを最初の100個の素数から探します。
+From the first 100 primes, select primes $`p`$ for which $`2p + 1`$ is also prime.
 
 ```javascript
 import { number } from "@butchi/integer-sequences";

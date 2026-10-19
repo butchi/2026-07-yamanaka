@@ -6,7 +6,7 @@ for (const identity of objectIdentities) {
     await page.goto(`/id/${identity.id}/`);
     await page.waitForURL(`**/numbers/${identity.slug}/`);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/numbers/${identity.slug}/$`));
-    await expect(page.getByRole("link", { name: "永続リンク", exact: true }))
+    await expect(page.getByRole("link", { name: "Permanent link", exact: true }))
       .toHaveAttribute("href", `/id/${identity.id}/`);
     const response = await request.get(`/objects/${identity.id}/data/digest.json`);
     expect(response.ok()).toBeTruthy();

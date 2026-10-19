@@ -3,9 +3,9 @@ import { objectIdentities } from "../../src/lib/objectIdentity";
 
 const fibonacciId = objectIdentities[0].id;
 
-const fibonacciPath = "/numbers/fibonacci/";
-const primePath = "/numbers/prime/";
-const squarePath = "/numbers/square/";
+const fibonacciPath = "/ja/numbers/fibonacci/";
+const primePath = "/ja/numbers/prime/";
+const squarePath = "/ja/numbers/square/";
 
 function operation(page: Page, name: string) {
   return page.getByTestId(`operation-${name}`);
@@ -39,7 +39,7 @@ async function chooseOutputFormat(panel: Locator, format: "JSON") {
 }
 
 test("トップページからフィボナッチ数ページへ移動できる", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/ja/");
 
   await expect(page).toHaveTitle(/Libra/);
   await expect(
@@ -105,8 +105,9 @@ test("対象関数をAPI互換のJavaScriptモジュールとして取得でき�
   expect(response.headers()["content-type"]).toContain("text/javascript");
   const moduleSource = await response.text();
   expect(moduleSource).not.toMatch(/\bimport\b/);
-  expect(moduleSource).toContain("export const number");
-  expect(moduleSource).toContain("export const bigint");
+  const module = await import(`data:text/javascript;base64,${Buffer.from(moduleSource).toString("base64")}`);
+  expect(module.number.fibonacci.term(10)).toBe(55);
+  expect(module.bigint.fibonacci.term(10)).toBe(55n);
 });
 
 test("コピーした実装をコンソール相当の通常スクリプトとして繰り返し実行できる", async ({ context, page }) => {
@@ -116,7 +117,7 @@ test("コピーした実装をコンソール相当の通常スクリプトと�
   });
   const sources: string[] = [];
   for (const { id, slug } of objectIdentities) {
-    await page.goto(`/numbers/${slug}/`);
+    await page.goto(`/ja/numbers/${slug}/`);
     const implementation = page.getByTestId("standalone-module");
     await implementation.locator("summary").click();
     await implementation.getByRole("button", { name: "コードをコピー", exact: true }).click();

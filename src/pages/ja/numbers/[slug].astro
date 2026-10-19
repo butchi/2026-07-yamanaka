@@ -1,0 +1,18 @@
+---
+import { getCollection } from "astro:content";
+import ObjectLayout from "@/layouts/ObjectLayout.astro";
+import { resolveObjectEntries } from "@/lib/objectEntries";
+
+export async function getStaticPaths() {
+  const [objects, readmes, datasets] = await Promise.all([
+    getCollection("objects"), getCollection("objectReadmes"), getCollection("datasets"),
+  ]);
+  return resolveObjectEntries(objects, readmes, datasets)
+    .flatMap((entry) => entry.japaneseReadme ? [{
+      params: { slug: entry.identity.slug },
+      props: { ...entry, readme: entry.japaneseReadme },
+    }] : []);
+}
+---
+
+<ObjectLayout {...Astro.props} />

@@ -33,27 +33,27 @@ function requireDirectory(path) {
 function readmeTemplate(name) {
   return `# ${name}
 
-<!-- 「詳細」を記入し、他の見出しは内容があるものだけ残してください。 -->
+<!-- Complete Details and keep other sections only when they have content. -->
 
-## 詳細
+## Details
 
-<!-- 定義、概要、出典を記入してください。 -->
+<!-- Add the definition, overview and references. -->
 
-## 例題
+## Examples
 
-## スコープ
+## Scope
 
-## 一般化と拡張
+## Generalizations and extensions
 
-## アプリケーション
+## Applications
 
-## 特性と関係
+## Properties and relations
 
-## 考えられる問題
+## Possible issues
 
-## おもしろい例題
+## Interesting examples
 
-## 出典
+## References
 `;
 }
 
@@ -118,7 +118,7 @@ export function createObject({ root, slug, name, description, conceptId = slug }
     const data = {
       id,
       conceptId: conceptId.trim(),
-      seo: { title: `${name.trim()} — データ・関数・解説｜Libra`, description: description.trim() },
+      seo: { title: `${name.trim()} — Data, functions and documentation | Libra`, description: description.trim() },
       relatedObjectIds: [],
     };
     writeFileSync(metadataPath, `${JSON.stringify(data, null, 2)}\n`, { flag: "wx" });
@@ -151,7 +151,7 @@ Required:
   --description  SEO description
 
 Example:
-  pnpm object:create --slug triangular --name "三角数" --description "三角数の定義、性質、例題を紹介します。"`;
+  pnpm object:create --slug triangular --name "Triangular numbers" --description "Definitions, properties and examples of triangular numbers."`;
   try {
     const { values } = parseArgs({
       options: {

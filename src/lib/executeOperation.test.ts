@@ -38,7 +38,7 @@ describe("executeOperation", () => {
     expect(result.metadata).toMatchObject({
       implementationId: "fibonacci-number-term-fast-doubling-v1",
       algorithmId: "fibonacci-fast-doubling",
-      algorithmName: "高速倍加法",
+      algorithmName: "Fast doubling method",
     });
   });
 
@@ -57,7 +57,7 @@ describe("executeOperation", () => {
     expect(result.code).toBe("bigint.fibonacci.term(100);");
     expect(result.json).toBe('"354224848179261915075"');
     expect(result.csv).toBe("354224848179261915075");
-    expect(result.jsonNote).toContain("10進文字列");
+    expect(result.jsonNote).toContain("decimal strings");
   });
 
   it("returns a human sentence for membership", () => {
@@ -69,7 +69,7 @@ describe("executeOperation", () => {
     });
 
     expect(result.raw).toBe(true);
-    expect(result.humanMessage).toBe("97は素数です。");
+    expect(result.humanMessage).toBe("97 belongs to Prime numbers.");
   });
 
   it("uses strict greater-than semantics for next", () => {
@@ -100,7 +100,7 @@ describe("executeOperation", () => {
     });
 
     expect(result.raw).toEqual([0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100]);
-    expect(result.humanMessage).toContain("100以下");
+    expect(result.humanMessage).toContain("at most 100");
   });
 
   it("never auto-switches when a Number result would be unsafe", () => {
@@ -183,7 +183,7 @@ describe("executeOperation", () => {
       outputFormat: "json",
     });
     expect(exportResult.raw).toHaveLength(uiLimits.maxDisplayedItems + 1);
-    expect(exportResult.warning).toContain("最初の1,000件");
+    expect(exportResult.warning).toContain("first 1,000 items");
 
     expect(() =>
       executeOperation({

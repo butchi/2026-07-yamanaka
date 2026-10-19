@@ -8,6 +8,7 @@ import {
 } from "@butchi/integer-sequences";
 
 import { IntegerInputError } from "./parseIntegerInput";
+import type { Locale } from "./i18n";
 
 export type OperationUiErrorCode =
   | "invalid-index"
@@ -50,27 +51,28 @@ export class OperationUiError extends Error {
   }
 }
 
-export function createUiLimitError(cause?: unknown): OperationUiError {
-  return new OperationUiError("ui-limit", operationErrorMessages.uiLimit, {
+export function createUiLimitError(cause?: unknown, locale: Locale = "en"): OperationUiError {
+  return new OperationUiError("ui-limit", messagesFor(locale).uiLimit, {
     cause,
   });
 }
 
-export function createDigitLimitError(cause?: unknown): OperationUiError {
-  return new OperationUiError("ui-limit", operationErrorMessages.digitLimit, {
+export function createDigitLimitError(cause?: unknown, locale: Locale = "en"): OperationUiError {
+  return new OperationUiError("ui-limit", messagesFor(locale).digitLimit, {
     cause,
   });
 }
 
-function mapInputError(error: IntegerInputError): OperationUiError {
+function mapInputError(error: IntegerInputError, locale: Locale): OperationUiError {
+  const messages = messagesFor(locale);
   if (error.reason === "too-many-digits") {
-    return createUiLimitError(error);
+    return createUiLimitError(error, locale);
   }
 
   if (error.field === "index") {
     return new OperationUiError(
       "invalid-index",
-      operationErrorMessages.invalidIndex,
+      messages.invalidIndex,
       { cause: error },
     );
   }
@@ -78,7 +80,7 @@ function mapInputError(error: IntegerInputError): OperationUiError {
   if (error.field === "count") {
     return new OperationUiError(
       "invalid-count",
-      operationErrorMessages.invalidCount,
+      messages.invalidCount,
       { cause: error },
     );
   }
@@ -86,7 +88,7 @@ function mapInputError(error: IntegerInputError): OperationUiError {
   if (error.reason === "unsafe-number") {
     return new OperationUiError(
       "unsafe-number",
-      operationErrorMessages.unsafeNumber,
+      messages.unsafeNumber,
       { cause: error },
     );
   }
@@ -94,32 +96,33 @@ function mapInputError(error: IntegerInputError): OperationUiError {
   if (error.field === "limit") {
     return new OperationUiError(
       "invalid-limit",
-      operationErrorMessages.invalidLimit,
+      messages.invalidLimit,
       { cause: error },
     );
   }
 
   return new OperationUiError(
     "invalid-value",
-    operationErrorMessages.invalidValue,
+    messages.invalidValue,
     { cause: error },
   );
 }
 
 /** Convert internal/library failures to messages safe to render in the UI. */
-export function toOperationUiError(error: unknown): OperationUiError {
+export function toOperationUiError(error: unknown, locale: Locale = "en"): OperationUiError {
+  const messages = messagesFor(locale);
   if (error instanceof OperationUiError) {
     return error;
   }
 
   if (error instanceof IntegerInputError) {
-    return mapInputError(error);
+    return mapInputError(error, locale);
   }
 
   if (error instanceof InvalidIndexError) {
     return new OperationUiError(
       "invalid-index",
-      operationErrorMessages.invalidIndex,
+      messages.invalidIndex,
       { cause: error },
     );
   }
@@ -127,7 +130,7 @@ export function toOperationUiError(error: unknown): OperationUiError {
   if (error instanceof InvalidCountError) {
     return new OperationUiError(
       "invalid-count",
-      operationErrorMessages.invalidCount,
+      messages.invalidCount,
       { cause: error },
     );
   }
@@ -135,7 +138,7 @@ export function toOperationUiError(error: unknown): OperationUiError {
   if (error instanceof InvalidLimitError) {
     return new OperationUiError(
       "invalid-limit",
-      operationErrorMessages.invalidLimit,
+      messages.invalidLimit,
       { cause: error },
     );
   }
@@ -143,7 +146,7 @@ export function toOperationUiError(error: unknown): OperationUiError {
   if (error instanceof UnsafeIntegerError) {
     return new OperationUiError(
       "unsafe-number",
-      operationErrorMessages.unsafeNumber,
+      messages.unsafeNumber,
       { cause: error },
     );
   }
@@ -151,7 +154,7 @@ export function toOperationUiError(error: unknown): OperationUiError {
   if (error instanceof IntegerOverflowError) {
     return new OperationUiError(
       "number-overflow",
-      operationErrorMessages.numberOverflow,
+      messages.numberOverflow,
       { cause: error },
     );
   }
@@ -159,12 +162,29 @@ export function toOperationUiError(error: unknown): OperationUiError {
   if (error instanceof OperationUnavailableError) {
     return new OperationUiError(
       "operation-unavailable",
-      operationErrorMessages.operationUnavailable,
+      messages.operationUnavailable,
       { cause: error },
     );
   }
 
-  return new OperationUiError("unexpected", operationErrorMessages.unexpected, {
+  return new OperationUiError("unexpected", messages.unexpected, {
     cause: error,
   });
+}
+
+const englishErrorMessages: Record<keyof typeof operationErrorMessages, string> = {
+  invalidIndex: "Enter a nonnegative safe integer for the index.",
+  invalidCount: "Enter a nonnegative safe integer for the count.",
+  invalidLimit: "Enter an integer for the limit.",
+  invalidValue: "Enter an integer.",
+  unsafeNumber: "This value cannot be represented exactly as Number.\nSelect BigInt.",
+  numberOverflow: "This result cannot be represented exactly as Number.\nRun again with BigInt.",
+  operationUnavailable: "This operation is unavailable for this object and numeric type.",
+  uiLimit: "The result exceeds the item limit.\nReduce the count or use file output.",
+  digitLimit: "The result exceeds the display digit limit.\nUse a smaller input.",
+  unexpected: "An error occurred during calculation. Check the input.",
+};
+
+function messagesFor(locale: Locale) {
+  return locale === "ja" ? operationErrorMessages : englishErrorMessages;
 }

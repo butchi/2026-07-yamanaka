@@ -541,10 +541,30 @@ a:hover {
 
 .header-inner {
   display: flex;
+  flex-wrap: wrap;
   min-height: 4.25rem;
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem 2rem;
+}
+
+.language-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.language-switcher a {
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-small);
+  text-decoration: none;
+}
+
+.language-switcher a[aria-current="page"] {
+  background: var(--color-accent-soft);
+  font-weight: 700;
 }
 
 .site-brand {

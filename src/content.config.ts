@@ -7,9 +7,9 @@ const objectId = z.string().regex(uuidV7Pattern);
 
 const objectReadmes = defineCollection({
   loader: glob({
-    pattern: "*/README.md",
+    pattern: "*/README{,.ja}.md",
     base: "./objects",
-    generateId: ({ entry }) => entry.split("/")[0],
+    generateId: ({ entry }) => `${entry.split("/")[0]}${entry.endsWith(".ja.md") ? "/ja" : ""}`,
   }),
   schema: z.object({}).strict(),
 });
@@ -28,6 +28,14 @@ const objects = defineCollection({
       description: z.string().trim().min(1),
     }).strict(),
     relatedObjectIds: z.array(objectId),
+    translations: z.object({
+      ja: z.object({
+        seo: z.object({
+          title: z.string().trim().min(1),
+          description: z.string().trim().min(1),
+        }).strict(),
+      }).strict().optional(),
+    }).strict().optional(),
     blog: z.object({
       title: z.string().trim().min(1),
       url: z.url({ protocol: /^https?$/ }),

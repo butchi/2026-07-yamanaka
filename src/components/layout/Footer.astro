@@ -1,4 +1,7 @@
 ---
+import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
 const year = new Date().getFullYear();
 ---
 
@@ -6,14 +9,14 @@ const year = new Date().getFullYear();
   <div class="site-container footer-inner">
     <p>
       <strong>Libra</strong><br />
-      数学・工学オブジェクトのデータ、関数、ドキュメントをつなぐオープンな知識ベースを目指します。
+      {t("An open knowledge base connecting mathematical and engineering objects with data, functions and documentation.", "数学・工学オブジェクトのデータ、関数、ドキュメントをつなぐオープンな知識ベースを目指します。")}
     </p>
-    <nav aria-label="フッターナビゲーション">
+    <nav aria-label={t("Footer navigation", "フッターナビゲーション")}>
       <ul>
-        <li><a href="/numbers/">カタログ</a></li>
-        <li><a href="/about/">プロジェクト</a></li>
-        <li><a href="/about/#contribution-heading">編集・PRを送る</a></li>
-        <li><a href="/license/">ライセンス</a></li>
+        <li><a href={localizedPath("/numbers/", locale)}>{t("Catalog", "カタログ")}</a></li>
+        <li><a href={localizedPath("/about/", locale)}>{t("Project", "プロジェクト")}</a></li>
+        <li><a href={localizedPath("/about/#contribution-heading", locale)}>{t("Edit / contribute", "編集・PRを送る")}</a></li>
+        <li><a href={localizedPath("/license/", locale)}>{t("License", "ライセンス")}</a></li>
       </ul>
     </nav>
     <p class="copyright"><small>&copy; {year} Libra</small></p>

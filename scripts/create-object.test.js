@@ -20,7 +20,7 @@ function fixture(registry = []) {
 }
 
 function options(root) {
-  return { root, slug: "triangular", name: "三角数", description: "三角数の定義と例題。" };
+  return { root, slug: "triangular", name: "Triangular numbers", description: "Definitions and examples of triangular numbers." };
 }
 
 function read(root, path) {
@@ -53,17 +53,17 @@ describe("object:create", () => {
     expect(JSON.parse(read(root, "triangular/object.json"))).toEqual({
       id: result.id,
       conceptId: "triangularNumbers",
-      seo: { title: "三角数 — データ・関数・解説｜Libra", description: "三角数の定義と例題。" },
+      seo: { title: "Triangular numbers — Data, functions and documentation | Libra", description: "Definitions and examples of triangular numbers." },
       relatedObjectIds: [],
     });
     expect(JSON.parse(read(root, "registry.json"))).toEqual([
       { id: result.id, slug: "triangular", previousSlugs: [] },
     ]);
     const readme = read(root, "triangular/README.md");
-    for (const section of ["詳細", "例題", "スコープ", "一般化と拡張", "アプリケーション", "特性と関係", "考えられる問題", "おもしろい例題", "出典"]) {
+    for (const section of ["Details", "Examples", "Scope", "Generalizations and extensions", "Applications", "Properties and relations", "Possible issues", "Interesting examples", "References"]) {
       expect(readme).toContain(`## ${section}\n`);
     }
-    expect(readme).toMatch(/^# 三角数\n/);
+    expect(readme).toMatch(/^# Triangular numbers\n/);
     expect(readdirSync(join(root, "objects/triangular")).sort()).toEqual(["README.md", "object.json"]);
     expect(readdirSync(join(root, "objects")).sort()).toEqual(["registry.json", "triangular"]);
   });

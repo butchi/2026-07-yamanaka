@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       name:
-        description: "Display name"
+        description: "English display name"
         required: true
         type: string
       description:
-        description: "SEO description"
+        description: "English SEO description"
         required: true
         type: string
       concept_id:

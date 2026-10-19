@@ -1,5 +1,8 @@
 ---
 import type { OperationName } from "../concept/OperationAvailability.astro";
+import { localeFromPath, text } from "@/lib/i18n";
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
 
 interface Props {
   conceptId: "fibonacci" | "prime" | "square";
@@ -19,33 +22,33 @@ const operationCopy: Record<OperationName, {
   defaultValue: string;
 }> = {
   term: {
-    title: "第n項を計算",
-    description: "公開APIは0始まりです。添字nに対応する1つの項を計算します。",
-    label: "添字 n",
+    title: t("Calculate the nth term", "第n項を計算"),
+    description: t("The public API is zero-based. Calculate the term at index n.", "公開APIは0始まりです。添字nに対応する1つの項を計算します。"),
+    label: t("Index n", "添字 n"),
     defaultValue: "10",
   },
   take: {
-    title: "最初のn項を生成",
-    description: "take(100) は最初の100項です。",
-    label: "項数",
+    title: t("Generate the first n terms", "最初のn項を生成"),
+    description: t("take(100) returns the first 100 terms.", "take(100) は最初の100項です。"),
+    label: t("Count", "項数"),
     defaultValue: "20",
   },
   upTo: {
-    title: "指定値以下を生成",
-    description: "upTo(100) は100以下のすべての該当数です。take(100) とは意味が異なります。",
-    label: "上限",
+    title: t("Generate up to a limit", "指定値以下を生成"),
+    description: t("upTo(100) returns all terms at most 100, unlike take(100).", "upTo(100) は100以下のすべての該当数です。take(100) とは意味が異なります。"),
+    label: t("Limit", "上限"),
     defaultValue: "100",
   },
   has: {
-    title: "所属を判定",
-    description: `入力した整数が${conceptName}に属するかを、人が読める文で判定します。`,
-    label: "判定する値",
+    title: t("Test membership", "所属を判定"),
+    description: t(`Test whether the integer belongs to ${conceptName}.`, `入力した整数が${conceptName}に属するかを、人が読める文で判定します。`),
+    label: t("Value to test", "判定する値"),
     defaultValue: conceptId === "prime" ? "97" : conceptId === "square" ? "49" : "55",
   },
   next: {
-    title: "次の該当数を計算",
-    description: "入力値より厳密に大きい最小の該当数です。添字上の「次の項」ではありません。",
-    label: "基準値",
+    title: t("Calculate the next value", "次の該当数を計算"),
+    description: t("The smallest member strictly greater than the input, not the next index.", "入力値より厳密に大きい最小の該当数です。添字上の「次の項」ではありません。"),
+    label: t("Reference value", "基準値"),
     defaultValue: "100",
   },
 };
@@ -56,9 +59,9 @@ const visibleOperations = operationOrder.filter(
 );
 ---
 
-<div class="calculator" data-concept-calculator={conceptId}>
+<div class="calculator" data-concept-calculator={conceptId} data-locale={locale}>
   <noscript>
-    <p class="notice notice--warning">操作パネルを実行するにはJavaScriptを有効にしてください。定義・静的一覧・コード例はJavaScriptなしでも読めます。</p>
+    <p class="notice notice--warning">{t("Enable JavaScript to use the calculator. Definitions, static data and examples remain readable without it.", "操作パネルを実行するにはJavaScriptを有効にしてください。定義・静的一覧・コード例はJavaScriptなしでも読めます。")}</p>
   </noscript>
 
   {visibleOperations.map((operation) => {
@@ -75,7 +78,7 @@ const visibleOperations = operationOrder.filter(
             <p class="eyebrow"><code>{operation}()</code></p>
             <h3>{copy.title}</h3>
           </div>
-          <span class="workload-badge" data-workload>即時に計算可能</span>
+          <span class="workload-badge" data-workload>{t("Ready to calculate", "即時に計算可能")}</span>
         </div>
         <p>{copy.description}</p>
 
@@ -95,7 +98,7 @@ const visibleOperations = operationOrder.filter(
             </label>
 
             <fieldset>
-              <legend>数値型</legend>
+              <legend>{t("Numeric type", "数値型")}</legend>
               <div class="segmented-control">
                 {supportedTypes.map((numericType, index) => (
                   <label>
@@ -113,10 +116,10 @@ const visibleOperations = operationOrder.filter(
 
             {hasOutputFormat && (
               <fieldset>
-                <legend>出力形式</legend>
+                <legend>{t("Output format", "出力形式")}</legend>
                 <div class="segmented-control segmented-control--format">
                   {[
-                    ["display", "表示用一覧"],
+                    ["display", t("Display", "表示用一覧")],
                     ["javascript", "JavaScript"],
                     ["json", "JSON"],
                     ["csv", "CSV"],
@@ -137,9 +140,9 @@ const visibleOperations = operationOrder.filter(
           </div>
 
           <p class="field-help" id={`${conceptId}-${operation}-input-help`}>
-            小数や指数表記は使えません。NumberとBigIntは自動では切り替わりません。
+            {t("Decimals and exponent notation are not accepted. Number and BigInt are never switched automatically.", "小数や指数表記は使えません。NumberとBigIntは自動では切り替わりません。")}
           </p>
-          <button class="primary-button" type="submit">実行する</button>
+          <button class="primary-button" type="submit">{t("Run", "実行する")}</button>
         </form>
 
         <div
@@ -149,31 +152,31 @@ const visibleOperations = operationOrder.filter(
           aria-live="polite"
           aria-atomic="true"
         >
-          <p class="operation-result__placeholder">入力して実行すると、ここに結果とコードが表示されます。</p>
+          <p class="operation-result__placeholder">{t("Enter a value and run to see the result and code here.", "入力して実行すると、ここに結果とコードが表示されます。")}</p>
         </div>
 
         <div class="result-details" hidden data-result-details>
           <div>
-            <p class="result-details__label">実行したコード</p>
+            <p class="result-details__label">{t("Executed code", "実行したコード")}</p>
             <pre tabindex="0"><code data-result-code></code></pre>
           </div>
           <dl>
             <div>
-              <dt>使用した実装</dt>
+              <dt>{t("Implementation used", "使用した実装")}</dt>
               <dd data-result-implementation>—</dd>
             </div>
             <div>
-              <dt>使用アルゴリズム</dt>
+              <dt>{t("Algorithm used", "使用アルゴリズム")}</dt>
               <dd data-result-algorithm>—</dd>
             </div>
           </dl>
           <p class="notice" hidden data-json-note></p>
           <div class="result-actions" data-result-actions>
-            <button type="button" data-copy="code">コードをコピー</button>
-            <button type="button" data-copy="display">結果をコピー</button>
-            <button type="button" data-copy="json">JSONをコピー</button>
-            <button type="button" data-copy="csv">CSVをコピー</button>
-            <button type="button" data-download>テキストファイルとして保存</button>
+            <button type="button" data-copy="code">{t("Copy code", "コードをコピー")}</button>
+            <button type="button" data-copy="display">{t("Copy result", "結果をコピー")}</button>
+            <button type="button" data-copy="json">{t("Copy JSON", "JSONをコピー")}</button>
+            <button type="button" data-copy="csv">{t("Copy CSV", "CSVをコピー")}</button>
+            <button type="button" data-download>{t("Save as a text file", "テキストファイルとして保存")}</button>
           </div>
           <span class="visually-hidden" aria-live="polite" data-copy-status></span>
         </div>
@@ -182,13 +185,15 @@ const visibleOperations = operationOrder.filter(
   })}
 
   <p class="calculator-limit-note">
-    このサイト上では、表示は一度に1,000項、JSON・CSVなどの出力は10,000項までです。
-    これはライブラリ自体の数学的な上限ではありません。
+    {t("This site displays up to 1,000 terms and exports up to 10,000 terms as JSON or CSV. These are UI limits, not mathematical limits of the library.", "このサイト上では、表示は一度に1,000項、JSON・CSVなどの出力は10,000項までです。これはライブラリ自体の数学的な上限ではありません。")}
   </p>
 </div>
 
 <script>
   import { executeOperation } from "../../lib/executeOperation";
+  import { localeFromPath, text } from "../../lib/i18n";
+  const locale = localeFromPath(location.pathname);
+  const t = (en: string, ja: string) => text(locale, en, ja);
 
   type OutputFormat = "display" | "javascript" | "json" | "csv";
   type UiResult = {
@@ -217,13 +222,13 @@ const visibleOperations = operationOrder.filter(
   function workloadFor(input: string, operation: string) {
     const digits = input.replace(/^-/, "").length;
     if (digits > 100 || (operation === "take" && Number(input) > 1_000)) {
-      return "ブラウザでの直接表示は非推奨";
+      return t("Direct browser display not recommended", "ブラウザでの直接表示は非推奨");
     }
-    if (digits > 30 || Number(input) > 10_000) return "やや大きい入力";
+    if (digits > 30 || Number(input) > 10_000) return t("Large input", "やや大きい入力");
     if ((operation === "take" || operation === "upTo") && Number(input) > 500) {
-      return "表示量が多い";
+      return t("Many items to display", "表示量が多い");
     }
-    return "即時に計算可能";
+    return t("Ready to calculate", "即時に計算可能");
   }
 
   document.querySelectorAll<HTMLElement>("[data-concept-calculator]").forEach((calculator) => {
@@ -248,7 +253,7 @@ const visibleOperations = operationOrder.filter(
             resultByForm.delete(form);
             details.hidden = true;
             resultArea.classList.remove("operation-result--error");
-            resultArea.textContent = "数値型または出力形式を変更しました。再度実行してください。";
+            resultArea.textContent = t("Numeric type or format changed. Run again.", "数値型または出力形式を変更しました。再度実行してください。");
           });
         });
 
@@ -257,13 +262,14 @@ const visibleOperations = operationOrder.filter(
         details.hidden = true;
         resultArea.classList.remove("operation-result--error");
         resultArea.setAttribute("aria-busy", "true");
-        resultArea.textContent = "計算しています…";
+        resultArea.textContent = t("Calculating…", "計算しています…");
 
         await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
 
         try {
           const outputFormat = selectedValue(form, "outputFormat", "display") as OutputFormat;
           const calculated = await Promise.resolve(executeOperation({
+            locale,
             conceptId,
             numericType: selectedValue(form, "numericType", "number") as "number" | "bigint",
             operation,
@@ -289,7 +295,7 @@ const visibleOperations = operationOrder.filter(
           const jsonNote = details.querySelector<HTMLElement>("[data-json-note]");
           if (code) code.textContent = calculated.code;
           if (implementation) {
-            const source = calculated.metadata?.source === "derived" ? "派生実装" : "ネイティブ実装";
+            const source = calculated.metadata?.source === "derived" ? t("Derived implementation", "派生実装") : t("Native implementation", "ネイティブ実装");
             implementation.textContent = calculated.metadata?.implementationId
               ? `${source} — ${calculated.metadata.implementationId}`
               : source;
@@ -297,7 +303,7 @@ const visibleOperations = operationOrder.filter(
           if (algorithm) {
             algorithm.textContent = calculated.metadata?.algorithmName
               ?? calculated.metadata?.algorithmId
-              ?? "実装情報なし";
+              ?? t("No implementation details", "実装情報なし");
           }
           if (jsonNote) {
             jsonNote.hidden = !calculated.jsonNote;
@@ -309,7 +315,7 @@ const visibleOperations = operationOrder.filter(
           resultArea.classList.add("operation-result--error");
           resultArea.textContent = error instanceof Error
             ? error.message
-            : "計算中にエラーが発生しました。入力を確認してください。";
+            : t("Calculation failed. Check the input.", "計算中にエラーが発生しました。入力を確認してください。");
         } finally {
           resultArea.removeAttribute("aria-busy");
         }
@@ -323,9 +329,9 @@ const visibleOperations = operationOrder.filter(
           if (!result || !status) return;
           try {
             await navigator.clipboard.writeText(result[key]);
-            status.textContent = `${button.textContent ?? "内容"}を完了しました。`;
+            status.textContent = t("Copied.", `${button.textContent ?? "内容"}を完了しました。`);
           } catch {
-            status.textContent = "コピーできませんでした。表示内容を選択してコピーしてください。";
+            status.textContent = t("Copy failed. Select and copy the result manually.", "コピーできませんでした。表示内容を選択してコピーしてください。");
           }
         });
       });

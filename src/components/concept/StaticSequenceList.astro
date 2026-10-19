@@ -1,4 +1,6 @@
 ---
+import { localeFromPath, text } from "@/lib/i18n";
+const locale = localeFromPath(Astro.url.pathname);
 interface Props {
   values: Array<number | bigint | string>;
   numericType?: "number" | "bigint";
@@ -11,9 +13,9 @@ const formatted = values.map((value) =>
 ---
 
 <div class="sequence-strip" data-testid="static-sequence-list" tabindex="0">
-  <ol aria-label="最初の数項">
+  <ol aria-label={text(locale, "First terms", "最初の数項")}>
     {formatted.map((value, index) => (
-      <li aria-label={`添字 ${index}: ${value}`}>
+      <li aria-label={`${text(locale, "Index", "添字")} ${index}: ${value}`}>
         <span class="sequence-strip__index" data-index={index} aria-hidden="true"></span>
         <span class="sequence-strip__term">
           <code>{value}</code>{index < formatted.length - 1 && <span class="sequence-strip__separator" aria-hidden="true">,</span>}

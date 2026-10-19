@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer.astro";
 import Header from "@/components/layout/Header.astro";
 import "@/styles/global.css";
 import "katex/dist/katex.min.css";
+import { localeFromPath, localizedPath, text } from "@/lib/i18n";
 
 interface BreadcrumbItem {
   label: string;
@@ -17,16 +18,25 @@ interface Props {
   ogImage?: string;
   breadcrumbs?: BreadcrumbItem[];
   ogType?: "website" | "article";
+  hasJapanese?: boolean;
 }
 
 const {
   title,
   description,
   canonical,
-  ogImage = "/og-libra.png",
+  ogImage = localeFromPath(Astro.url.pathname) === "ja" ? "/og-libra.png" : "/og-libra-en.png",
   breadcrumbs = [],
   ogType = "website",
+  hasJapanese = true,
 } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
+const homePath = localizedPath("/", locale);
+const alternatePaths = hasJapanese ? [
+  { locale: "en", path: localizedPath(Astro.url.pathname, "en") },
+  { locale: "ja", path: localizedPath(Astro.url.pathname, "ja") },
+] : [{ locale: "en", path: localizedPath(Astro.url.pathname, "en") }];
 
 const siteName = "Libra";
 const siteBase = Astro.site ?? new URL(Astro.url.origin);
@@ -43,19 +53,19 @@ const suppliedBreadcrumbs = breadcrumbs.filter(
   (item, index) =>
     !(
       index === 0 &&
-      (item.label === "ホーム" ||
+      (item.label === t("Home", "ホーム") ||
         (item.href &&
-          normalizePath(new URL(item.href, siteBase).pathname) === "/"))
+          normalizePath(new URL(item.href, siteBase).pathname) === normalizePath(homePath)))
     ),
 );
 const breadcrumbItems: BreadcrumbItem[] = [
-  currentPath === "/"
-    ? { label: "ホーム" }
-    : { label: "ホーム", href: "/" },
+  currentPath === normalizePath(homePath)
+    ? { label: t("Home", "ホーム") }
+    : { label: t("Home", "ホーム"), href: homePath },
   ...suppliedBreadcrumbs,
 ];
 
-if (currentPath !== "/") {
+if (currentPath !== normalizePath(homePath)) {
   const lastItem = breadcrumbItems.at(-1);
   const lastPath = lastItem?.href
     ? normalizePath(new URL(lastItem.href, siteBase).pathname)
@@ -68,7 +78,7 @@ if (currentPath !== "/") {
   }
 }
 
-const websiteUrl = new URL("/", siteBase).href;
+const websiteUrl = new URL(homePath, siteBase).href;
 const structuredData = {
   "@context": "https://schema.org",
   "@graph": [
@@ -77,9 +87,9 @@ const structuredData = {
       "@id": `${websiteUrl}#website`,
       name: siteName,
       url: websiteUrl,
-      inLanguage: "ja",
+      inLanguage: locale,
       description:
-        "数学・工学オブジェクトのデータ、関数、ドキュメントをまとめるオープンな知識ベースです。",
+        t("An open knowledge base for mathematical and engineering objects, data, functions and documentation.", "数学・工学オブジェクトのデータ、関数、ドキュメントをまとめるオープンな知識ベースです。"),
     },
     {
       "@type": "BreadcrumbList",
@@ -101,7 +111,7 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
 ---
 
 <!doctype html>
-<html lang="ja">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -111,9 +121,12 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
 
     <title>{title}</title>
     <link rel="canonical" href={canonicalUrl.href} />
+    {alternatePaths.map((alternate) => <link rel="alternate" hreflang={alternate.locale} href={new URL(alternate.path, siteBase)} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL(localizedPath(Astro.url.pathname, "en"), siteBase)} />
 
     <meta property="og:type" content={ogType} />
-    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:locale" content={locale === "ja" ? "ja_JP" : "en_US"} />
+    {hasJapanese && <meta property="og:locale:alternate" content={locale === "ja" ? "en_US" : "ja_JP"} />}
     <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -121,7 +134,7 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
     {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
     {ogImageUrl && <meta property="og:image:width" content="1200" />}
     {ogImageUrl && <meta property="og:image:height" content="630" />}
-    {ogImageUrl && <meta property="og:image:alt" content="Libra — 知識を、使えるかたちに。" />}
+    {ogImageUrl && <meta property="og:image:alt" content="Libra" />}
 
     <meta
       name="twitter:card"
@@ -130,7 +143,7 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
-    {ogImageUrl && <meta name="twitter:image:alt" content="Libra — 知識を、使えるかたちに。" />}
+    {ogImageUrl && <meta name="twitter:image:alt" content="Libra" />}
 
     <script
       type="application/ld+json"
@@ -140,7 +153,7 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(
     <slot name="head" />
   </head>
   <body>
-    <Header />
+    <Header hasJapanese={hasJapanese} />
     <Breadcrumbs items={breadcrumbItems} />
     <main id="main-content" class="site-main">
       <slot />

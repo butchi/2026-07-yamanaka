@@ -27,6 +27,7 @@ import {
   type NumericType,
 } from "./parseIntegerInput";
 import { uiLimits } from "./uiLimits";
+import { text, type Locale } from "./i18n";
 
 export const conceptIds = ["fibonacci", "prime", "square"] as const;
 export type ConceptId = (typeof conceptIds)[number];
@@ -44,6 +45,7 @@ export const outputFormats = ["display", "javascript", "json", "csv"] as const;
 export type OutputFormat = (typeof outputFormats)[number];
 
 export type ExecuteOperationRequest = {
+  locale?: Locale;
   conceptId: ConceptId;
   numericType: NumericType;
   operation: ExecutableOperation;
@@ -222,7 +224,7 @@ function enforcePrecalculationLimits(
   const maxItems = maxItemsFor(outputFormat);
 
   if (request.operation === "take" && parsedInput > maxItems) {
-    throw createUiLimitError();
+    throw createUiLimitError(undefined, request.locale);
   }
 
   if (
@@ -231,7 +233,7 @@ function enforcePrecalculationLimits(
     request.numericType === "number" &&
     parsedInput > uiLimits.maxPrimeUpTo
   ) {
-    throw createUiLimitError();
+    throw createUiLimitError(undefined, request.locale);
   }
 
   if (request.operation !== "upTo" || parsedInput < 0) {
@@ -251,7 +253,7 @@ function enforcePrecalculationLimits(
       maxItems,
     );
     if (isAtLeast(parsedInput, firstDisallowedValue)) {
-      throw createUiLimitError();
+      throw createUiLimitError(undefined, request.locale);
     }
   }
 }
@@ -293,15 +295,15 @@ function resolveMetadata(
 
   return {
     conceptId: request.conceptId,
-    conceptName: concept.meta.name.ja,
+    conceptName: concept.meta.name[request.locale ?? "en"],
     numericType: request.numericType,
     operation: request.operation,
     source: direct.source,
     derivedFrom: direct.derivedFrom,
     implementationId: resolved.implementationId,
     algorithmId: resolved.algorithmId,
-    algorithmName: algorithm?.name.ja,
-    algorithmDescription: algorithm?.description?.ja,
+    algorithmName: algorithm?.name[request.locale ?? "en"],
+    algorithmDescription: algorithm?.description?.[request.locale ?? "en"],
     complexity: resolved.complexity,
     verification: resolved.verification,
     benchmarkId: resolved.benchmarkId,
@@ -316,6 +318,15 @@ function buildHumanMessage(
 ): string {
   const input = formatDisplay(parsedInput).value;
   const result = formatDisplay(raw).value;
+  if ((request.locale ?? "en") === "en") {
+    switch (request.operation) {
+      case "term": return `${conceptName} at index ${input}: ${result}.`;
+      case "take": return `Generated the first ${input} terms of ${conceptName}.`;
+      case "upTo": return `Generated ${Array.isArray(raw) ? raw.length.toLocaleString("en-US") : 0} terms of ${conceptName} at most ${input}.`;
+      case "has": return `${input} ${raw === true ? "belongs" : "does not belong"} to ${conceptName}.`;
+      case "next": return `The next value in ${conceptName} strictly greater than ${input} is ${result}.`;
+    }
+  }
 
   switch (request.operation) {
     case "term":
@@ -338,22 +349,23 @@ function buildHumanMessage(
 function buildWarning(
   raw: RawOperationResult,
   displayWasTruncated: boolean,
+  locale: Locale,
 ): string | undefined {
   const warnings: string[] = [];
 
   if (displayWasTruncated) {
     warnings.push(
-      `表示量が多いため、画面上では最初の${uiLimits.maxDisplayedItems.toLocaleString("ja-JP")}件のみ表示しています。`,
+      text(locale, `Only the first ${uiLimits.maxDisplayedItems.toLocaleString("en-US")} items are displayed.`, `表示量が多いため、画面上では最初の${uiLimits.maxDisplayedItems.toLocaleString("ja-JP")}件のみ表示しています。`),
     );
   } else if (
     Array.isArray(raw) &&
     raw.length >= uiLimits.largeItemWarningThreshold
   ) {
-    warnings.push("表示量が多い結果です。");
+    warnings.push(text(locale, "This result contains many items.", "表示量が多い結果です。"));
   }
 
   if (maxDecimalDigits(raw) >= uiLimits.largeDigitWarningThreshold) {
-    warnings.push("桁数が非常に多く、ブラウザでの直接表示は非推奨です。");
+    warnings.push(text(locale, "This result has many digits; direct browser display is not recommended.", "桁数が非常に多く、ブラウザでの直接表示は非推奨です。"));
   }
 
   return warnings.length === 0 ? undefined : warnings.join("\n");
@@ -375,7 +387,7 @@ function assertRequest(request: ExecuteOperationRequest): void {
     request.outputFormat !== undefined &&
     !isOutputFormat(request.outputFormat)
   ) {
-    throw new OperationUiError("invalid-value", "出力形式を選択してください。");
+    throw new OperationUiError("invalid-value", text(request.locale ?? "en", "Select an output format.", "出力形式を選択してください。"));
   }
 }
 
@@ -397,15 +409,16 @@ export function executeOperation(
     const raw = run(parsedInput) as RawOperationResult;
     const resultCount = Array.isArray(raw) ? raw.length : 1;
     if (resultCount > maxItemsFor(outputFormat)) {
-      throw createUiLimitError();
+      throw createUiLimitError(undefined, request.locale);
     }
 
     if (maxDecimalDigits(raw) > uiLimits.maxDisplayedDigits) {
-      throw createDigitLimitError();
+      throw createDigitLimitError(undefined, request.locale);
     }
 
     const formatted = formatOutput(raw, {
       maxDisplayedItems: uiLimits.maxDisplayedItems,
+      locale: request.locale,
     });
 
     return {
@@ -422,15 +435,15 @@ export function executeOperation(
       csv: formatted.csv,
       humanMessage: buildHumanMessage(
         request,
-        concept.meta.name.ja,
+        concept.meta.name[request.locale ?? "en"],
         parsedInput,
         raw,
       ),
       metadata: resolveMetadata(request, concept, operationMetadata),
-      warning: buildWarning(raw, formatted.displayWasTruncated),
+      warning: buildWarning(raw, formatted.displayWasTruncated, request.locale ?? "en"),
       jsonNote: formatted.jsonNote,
     };
   } catch (error) {
-    throw toOperationUiError(error);
+    throw toOperationUiError(error, request.locale);
   }
 }

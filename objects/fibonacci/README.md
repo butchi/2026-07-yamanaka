@@ -1,29 +1,29 @@
-# フィボナッチ数
+# Fibonacci numbers
 
-0と1から始まり、3項目以降を直前の2項の和として作る数列です。
+A sequence starting with 0 and 1, with each subsequent term equal to the sum of the preceding two terms.
 
 $$
 F_0 = 0,\quad F_1 = 1,\quad F_n = F_{n-1} + F_{n-2}\quad (n \ge 2)
 $$
 
-## 注記
+## Notes
 
-- 数列としては1が2回現れますが、集合として所属を考えるときは同じ値を重複して数えません。
-- `take(n)` は先頭からn項を返し、`upTo(limit)` は値がlimit以下の項を返します。
-- `range(100).map(number.fibonacci.term)` は、$`F_{79}`$ が安全整数範囲を超えるため途中で `IntegerOverflowError` になります。Number版では `range(79)` までにするか、必要な範囲を検討したうえでBigInt版を選んでください。
+- The sequence contains 1 twice; membership in the set does not count duplicates.
+- `take(n)` returns the first n terms. `upTo(limit)` returns all terms at most limit.
+- `range(100).map(number.fibonacci.term)` throws `IntegerOverflowError` at $`F_{79}`$, which exceeds the safe integer range. Use at most `range(79)` with Number, or choose BigInt after considering the required workload.
 
-## 数値型と精度
+## Numeric types and precision
 
-| 数値型 | 整数の精度 | 添字の型 |
+| Numeric type | Integer precision | Index type |
 | --- | --- | --- |
-| Number | 安全整数範囲内で正確 | 非負の安全なNumber |
-| BigInt | 任意精度整数 | 非負の安全なNumber |
+| Number | Exact within the safe integer range | Nonnegative safe Number |
+| BigInt | Arbitrary precision | Nonnegative safe Number |
 
-## 他の数との組み合わせ
+## Relationships with other numbers
 
-### フィボナッチ素数を抽出する
+### Find Fibonacci primes
 
-Number版で正確に扱える最初の79項から、素数でもあるフィボナッチ数を抽出します。`range(100)` は $`F_{79}`$ で範囲外になるため、実行可能な範囲を使います。
+Filter the first 79 Fibonacci terms, which are exact with Number, for primality.
 
 ```javascript
 import { number, range } from "@butchi/integer-sequences";
@@ -36,9 +36,9 @@ const fibonacciPrimes = range(79)
   .filter(isPrime);
 ```
 
-### 平方数でもあるフィボナッチ数を探す
+### Find Fibonacci numbers that are also squares
 
-BigInt版で最初の100項を生成し、平方数の所属判定と組み合わせます。
+Generate the first 100 Fibonacci terms with BigInt and test square membership.
 
 ```javascript
 import { bigint, range } from "@butchi/integer-sequences";

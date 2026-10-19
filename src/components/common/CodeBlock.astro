@@ -1,24 +1,28 @@
 ---
+import { localeFromPath, text } from "@/lib/i18n";
 interface Props {
   code: string;
   label?: string;
 }
 
-const { code, label = "コード例" } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const { code, label = text(locale, "Code example", "コード例") } = Astro.props;
 ---
 
 <copy-code class="code-block">
   <div class="code-block__bar">
     <span>{label}</span>
-    <button type="button" data-copy-code>コードをコピー</button>
+    <button type="button" data-copy-code>{text(locale, "Copy code", "コードをコピー")}</button>
   </div>
   <pre tabindex="0"><code>{code}</code></pre>
   <span class="visually-hidden" aria-live="polite" data-copy-status></span>
 </copy-code>
 
 <script>
+  import { localeFromPath, text } from "../../lib/i18n";
   class CopyCode extends HTMLElement {
     connectedCallback() {
+      const t = (en: string, ja: string) => text(localeFromPath(location.pathname), en, ja);
       const button = this.querySelector<HTMLButtonElement>("[data-copy-code]");
       const code = this.querySelector("code");
       const status = this.querySelector<HTMLElement>("[data-copy-status]");
@@ -28,13 +32,13 @@ const { code, label = "コード例" } = Astro.props;
 
         try {
           await navigator.clipboard.writeText(code.textContent ?? "");
-          status.textContent = "コードをコピーしました。";
-          button.textContent = "コピーしました";
+          status.textContent = t("Code copied.", "コードをコピーしました。");
+          button.textContent = t("Copied", "コピーしました");
           window.setTimeout(() => {
-            button.textContent = "コードをコピー";
+            button.textContent = t("Copy code", "コードをコピー");
           }, 1800);
         } catch {
-          status.textContent = "コピーできませんでした。コードを選択してコピーしてください。";
+          status.textContent = t("Copy failed. Select and copy the code manually.", "コピーできませんでした。コードを選択してコピーしてください。");
         }
       });
     }

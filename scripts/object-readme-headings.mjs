@@ -2,7 +2,7 @@ export default function objectReadmeHeadings() {
   return {
     name: "object-readme-headings",
     heading(heading, context) {
-      if (!/(?:^|\/)objects\/[^/]+\/README\.md$/.test(context.fileURL?.pathname ?? "")) {
+      if (!/(?:^|\/)objects\/[^/]+\/README(?:\.ja)?\.md$/.test(context.fileURL?.pathname ?? "")) {
         return;
       }
 

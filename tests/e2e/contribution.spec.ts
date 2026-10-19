@@ -5,7 +5,7 @@ const repositoryUrl = "https://github.com/butchi/2026-07-yamanaka";
 const compareUrl = `${repositoryUrl}/compare/develop...develop?expand=1`;
 
 test("共通ナビゲーションからdevelop向けの投稿手順に進める", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/ja/");
   await page.getByRole("navigation", { name: "主要ナビゲーション", exact: true })
     .getByRole("link", { name: "編集・PRを送る", exact: true }).click();
 
@@ -24,22 +24,22 @@ test("共通ナビゲーションからdevelop向けの投稿手順に進める"
   await expect(contribution).toContainText("Draft PR");
   await expect(page.getByRole("navigation", { name: "フッターナビゲーション", exact: true })
     .getByRole("link", { name: "編集・PRを送る", exact: true }))
-    .toHaveAttribute("href", "/about/#contribution-heading");
+    .toHaveAttribute("href", "/ja/about/#contribution-heading");
 });
 
 for (const { slug } of objectIdentities) {
   test(`${slug}の編集リンクがdevelop上の対象ファイルを指す（JavaScriptなし）`, async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
-    await page.goto(`/numbers/${slug}/`);
+    await page.goto(`/ja/numbers/${slug}/`);
     const navigation = page.getByRole("navigation", { name: "この項目をGitHubで編集", exact: true });
     const links = [
-      ["項目のREADMEを編集", `${repositoryUrl}/edit/develop/objects/${slug}/README.md`],
+      ["項目のREADMEを編集", `${repositoryUrl}/edit/develop/objects/${slug}/README.ja.md`],
       ["実装を編集", `${repositoryUrl}/edit/develop/objects/${slug}/functions.source.js`],
       ["データを編集", `${repositoryUrl}/tree/develop/objects/${slug}/data`],
       ["項目のソース", `${repositoryUrl}/tree/develop/objects/${slug}`],
       ["PRを作成する（GitHub）", compareUrl],
-      ["投稿手順", "/about/#contribution-heading"],
+      ["投稿手順", "/ja/about/#contribution-heading"],
     ];
     for (const [name, href] of links) {
       const link = navigation.getByRole("link", { name, exact: true });

@@ -1,24 +1,29 @@
 ---
+import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+interface Props { hasJapanese?: boolean }
+const { hasJapanese = true } = Astro.props;
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
 const navigation = [
-  { href: "/numbers/", label: "カタログ" },
-  { href: "/about/", label: "プロジェクト" },
-  { href: "/about/#contribution-heading", label: "編集・PRを送る" },
+  { href: localizedPath("/numbers/", locale), label: t("Catalog", "カタログ") },
+  { href: localizedPath("/about/", locale), label: t("Project", "プロジェクト") },
+  { href: localizedPath("/about/#contribution-heading", locale), label: t("Edit / contribute", "編集・PRを送る") },
 ] as const;
 
 const currentPath = Astro.url.pathname;
 const isCurrent = (href: string) => !href.includes("#") && currentPath.startsWith(href);
 ---
 
-<a class="skip-link" href="#main-content">本文へ移動</a>
+<a class="skip-link" href="#main-content">{t("Skip to content", "本文へ移動")}</a>
 <header class="site-header">
   <div class="site-container header-inner">
-    <a class="site-brand" href="/" aria-label="Libra ホーム">
+    <a class="site-brand" href={localizedPath("/", locale)} aria-label={t("Libra home", "Libra ホーム")}>
       <span class="site-brand-mark" aria-hidden="true">L</span>
       <span>Libra</span>
       <span class="site-brand-caption">KNOWLEDGE FOR OBJECTS</span>
     </a>
 
-    <nav class="primary-navigation" aria-label="主要ナビゲーション">
+    <nav class="primary-navigation" aria-label={t("Main navigation", "主要ナビゲーション")}>
       <ul>
         {
           navigation.map((item) => (
@@ -33,6 +38,12 @@ const isCurrent = (href: string) => !href.includes("#") && currentPath.startsWit
           ))
         }
       </ul>
+    </nav>
+    <nav class="language-switcher" aria-label={t("Language", "言語")}>
+      <a href={localizedPath(Astro.url.pathname, "en")} lang="en" hreflang="en" aria-current={locale === "en" ? "page" : undefined}>English</a>
+      {hasJapanese
+        ? <a href={localizedPath(Astro.url.pathname, "ja")} lang="ja" hreflang="ja" aria-current={locale === "ja" ? "page" : undefined}>日本語</a>
+        : <span lang="ja">日本語版は未提供（英語版を表示中）</span>}
     </nav>
   </div>
 </header>
