@@ -8,6 +8,7 @@ import { resolveConstantEntries } from "@/lib/constantEntries";
 import { resolveDataObjectEntries } from "@/lib/dataObjectEntries";
 import { objectPagePath } from "@/lib/objectIdentity";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+import { sitePath } from "@/lib/sitePath";
 const locale = localeFromPath(Astro.url.pathname);
 const t = (en: string, ja: string) => text(locale, en, ja);
 
@@ -60,8 +61,8 @@ const dataObjectEntries = resolveDataObjectEntries(objects, readmes, datasets);
           <p>{concept.meta.description?.[locale]}</p>
           <StaticSequenceList values={digest.data.terms.slice(0, 10)} />
           <p class="dataset-links">
-            <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON (16 terms)", "ダイジェストJSON（16項）")}</a>
-            <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 terms)", "標準JSON（256項）")}</a>
+            <a href={sitePath(`/objects/${identity.id}/data/digest.json`)} target="_blank" rel="noopener">{t("Digest JSON (16 terms)", "ダイジェストJSON（16項）")}</a>
+            <a href={sitePath(`/objects/${identity.id}/data/standard.json`)} target="_blank" rel="noopener">{t("Standard JSON (256 terms)", "標準JSON（256項）")}</a>
           </p>
           <OperationAvailability availability={availability} />
           <div class="catalog-item__footer">
@@ -98,8 +99,8 @@ const dataObjectEntries = resolveDataObjectEntries(objects, readmes, datasets);
           </div>
         </dl>
         <p class="dataset-links">
-          <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON", "ダイジェストJSON")}</a>
-          <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 decimal places)", "標準JSON（小数点以下256桁）")}</a>
+          <a href={sitePath(`/objects/${identity.id}/data/digest.json`)} target="_blank" rel="noopener">{t("Digest JSON", "ダイジェストJSON")}</a>
+          <a href={sitePath(`/objects/${identity.id}/data/standard.json`)} target="_blank" rel="noopener">{t("Standard JSON (256 decimal places)", "標準JSON（小数点以下256桁）")}</a>
         </p>
         <div class="catalog-item__footer">
           <p><span class="support-badge">{t("Exact symbolic value", "記号による厳密値")}</span></p>
@@ -126,7 +127,7 @@ const dataObjectEntries = resolveDataObjectEntries(objects, readmes, datasets);
             )}</p>
           ) : <pre><code>{JSON.stringify(content.data.value)}</code></pre>}
           <p class="dataset-links">
-            <a href={`/objects/${identity.id}/data/content.json`} target="_blank" rel="noopener">{t("JSON data", "JSONデータ")}</a>
+            <a href={sitePath(`/objects/${identity.id}/data/content.json`)} target="_blank" rel="noopener">{t("JSON data", "JSONデータ")}</a>
           </p>
           <div class="catalog-item__footer">
             <p><span class="support-badge">{content.data.format === "matrix" ? t("Matrix", "行列") : t("Arbitrary JSON value", "任意のJSON値")}</span></p>

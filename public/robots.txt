@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://integer-sequence-viewer.butchi-y.chatgpt.site/sitemap-index.xml

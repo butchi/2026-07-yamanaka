@@ -72,7 +72,8 @@ test("sitemap pairs translations while UUID assets remain language-neutral", asy
   expect(sitemap).toContain('hreflang="ja"');
   expect(sitemap).toContain("/ja/numbers/fibonacci/");
   expect(sitemap).toContain("/ja/constants/golden-ratio/");
-  expect(sitemap).not.toContain("/ja/objects/");
+  expect(sitemap).toContain("/ja/objects/fibonacci-words/");
+  expect(sitemap).not.toMatch(/\/ja\/objects\/[0-9a-f]{8}-/);
   const english = await request.get(`/objects/${objectIdentities[0].id}/data/standard.json`);
   expect(english.ok()).toBe(true);
   expect((await english.json()).terms).toHaveLength(256);

@@ -10,6 +10,7 @@ import { github } from "@/lib/github";
 import { type ObjectIdentity, objectPagePath } from "@/lib/objectIdentity";
 import { compileObjectModule } from "@/lib/objectModules";
 import { localeFromPath, localizedPath, operationLabels as labelsFor, text } from "@/lib/i18n";
+import { sitePath } from "@/lib/sitePath";
 import {
   type ConceptRegistryEntry,
   type UiOperation,
@@ -112,7 +113,7 @@ const includesZero = digest.data.terms.some((term) => String(term) === "0");
         ))}
         <span>{t("Public API: zero-based", "公開API: 0始まり")}</span>
         <span>{includesZero ? t("Includes 0", "0を含む") : t("Excludes 0", "0を含まない")}</span>
-        <a href={`/id/${identity.id}/`}>{t("Permanent link", "永続リンク")}</a>
+        <a href={sitePath(`/id/${identity.id}/`)}>{t("Permanent link", "永続リンク")}</a>
       </div>
       <aside class="notice" aria-label={t("Contribute to this object", "この項目への貢献")}>
         <strong>{t("Edit or improve this object", "この項目を編集・提案する")}</strong>
@@ -138,9 +139,9 @@ const includesZero = digest.data.terms.some((term) => String(term) === "0");
       </div>
       <StaticSequenceList values={[...digest.data.terms]} />
       <p class="dataset-links">
-        <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON (16 terms)", "ダイジェストJSON（16項）")}</a>
-        <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 terms)", "標準JSON（256項）")}</a>
-        <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">{t("JavaScript API module", "JavaScript APIモジュール")}</a>
+        <a href={sitePath(`/objects/${identity.id}/data/digest.json`)} target="_blank" rel="noopener">{t("Digest JSON (16 terms)", "ダイジェストJSON（16項）")}</a>
+        <a href={sitePath(`/objects/${identity.id}/data/standard.json`)} target="_blank" rel="noopener">{t("Standard JSON (256 terms)", "標準JSON（256項）")}</a>
+        <a href={sitePath(`/objects/${identity.id}/functions.mjs`)} target="_blank" rel="noopener">{t("JavaScript API module", "JavaScript APIモジュール")}</a>
       </p>
       <p class="text-muted">{t("Data comes from committed JSON files, not regenerated from the calculation API during page generation.", "データはこのディレクトリ内のJSONファイルから提供されます。計算APIの結果からページ生成時に作り直すことはありません。")}</p>
     </section>
@@ -205,7 +206,7 @@ const includesZero = digest.data.terms.some((term) => String(term) === "0");
         <summary>{t("View and copy the dependency-free implementation", "依存なしの実装を表示・コピー")}</summary>
         <CodeBlock code={moduleSource} label={t("Full JavaScript implementation (console)", "JavaScript実装全体（コンソール用）")} />
       </details>
-      <p><a href={`/objects/${identity.id}/functions.js`} target="_blank" rel="noopener">{t("View implementation (functions.js)", "実装を表示（functions.js）")}</a></p>
+      <p><a href={sitePath(`/objects/${identity.id}/functions.js`)} target="_blank" rel="noopener">{t("View implementation (functions.js)", "実装を表示（functions.js）")}</a></p>
       <p>{t("After pasting, run the examples below. Functions are registered under", "貼り付け後、以下のコードをコンソールで実行できます。関数の登録先：")} <code>libra.number</code> / <code>libra.bigint</code>.</p>
       <div class="code-example-grid">
         {codeExamples.map(({ numericType, code }) => (
@@ -215,7 +216,7 @@ const includesZero = digest.data.terms.some((term) => String(term) === "0");
           />
         ))}
       </div>
-      <p>{t("For ES modules, save", "ES moduleとして使う場合は、単体で動作する")} <a href={`/objects/${identity.id}/functions.mjs`} target="_blank" rel="noopener">functions.mjs</a>
+      <p>{t("For ES modules, save", "ES moduleとして使う場合は、単体で動作する")} <a href={sitePath(`/objects/${identity.id}/functions.mjs`)} target="_blank" rel="noopener">functions.mjs</a>
         {t("and import with", "を保存し、")} <code>{`import { number, bigint } from "./functions.mjs";`}</code>.
         {t("It exports functions without registering globalThis.libra. Alternatively, import from @butchi/integer-sequences.", "関数はエクスポートされ、globalThis.libraへの登録は行いません。既存パッケージを使う場合はインポート元を@butchi/integer-sequencesに差し替えられます。")}</p>
     </section>

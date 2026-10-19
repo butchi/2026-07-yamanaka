@@ -17,26 +17,32 @@ const translatedPaths = new Set([
   "/", "/about/", "/license/", "/numbers/",
   ...objectIdentities.filter(({ id }) => translatedIds.has(id)).map(objectPagePath),
 ]);
+const base = process.env.BASE_PATH || "/";
+const basePrefix = base.replace(/\/+$/, "");
+const withoutBase = (path) => basePrefix && (path === basePrefix || path.startsWith(`${basePrefix}/`))
+  ? path.slice(basePrefix.length) || "/" : path;
+const withBase = (path) => `${basePrefix}${path}`;
 
 export default defineConfig({
-  site: "https://integer-sequence-viewer.butchi-y.chatgpt.site",
+  site: process.env.SITE_URL || "https://integer-sequence-viewer.butchi-y.chatgpt.site",
+  base,
   output: "static",
   redirects: Object.fromEntries(
     Object.entries(objectRedirects).filter(([source]) => !Object.hasOwn(objectRedirects, `${source}/`)).map(([source, destination]) => [
-      source, { status: 301, destination },
+      source, { status: 301, destination: withBase(destination) },
     ]),
   ),
   integrations: [
     sitemap({
-      filter: (page) => !Object.hasOwn(objectRedirects, new URL(page).pathname),
+      filter: (page) => !Object.hasOwn(objectRedirects, withoutBase(new URL(page).pathname)),
       serialize(item) {
         const url = new URL(item.url);
-        const neutral = url.pathname.replace(/^\/ja(?=\/)/, "") || "/";
+        const neutral = withoutBase(url.pathname).replace(/^\/ja(?=\/)/, "") || "/";
         if (translatedPaths.has(neutral)) {
           item.links = [
-            { lang: "en", url: new URL(neutral, url).href },
-            { lang: "ja", url: new URL(`/ja${neutral}`, url).href },
-            { lang: "x-default", url: new URL(neutral, url).href },
+            { lang: "en", url: new URL(withBase(neutral), url).href },
+            { lang: "ja", url: new URL(withBase(`/ja${neutral}`), url).href },
+            { lang: "x-default", url: new URL(withBase(neutral), url).href },
           ];
         }
         return item;
@@ -48,7 +54,7 @@ export default defineConfig({
         "astro:build:done": async ({ dir }) => {
           await writeFile(
             new URL("_redirects", dir),
-            Object.entries(objectRedirects).map(([source, destination]) => `${source} ${destination} 301`).join("\n") + "\n",
+            Object.entries(objectRedirects).map(([source, destination]) => `${withBase(source)} ${withBase(destination)} 301`).join("\n") + "\n",
           );
         },
       },

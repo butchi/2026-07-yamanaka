@@ -4,6 +4,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { objectPagePath, type ObjectIdentity } from "@/lib/objectIdentity";
 import type { JsonObjectDataset } from "@/lib/objectDatasetTypes";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+import { sitePath } from "@/lib/sitePath";
 
 interface Props {
   object: CollectionEntry<"objects">;
@@ -44,7 +45,7 @@ const jsonData = content.data.format === "json" ? JSON.stringify(content.data.va
       <p class="eyebrow">{t("DATA OBJECT", "データオブジェクト")}</p>
       <h1>{data.name[locale]}</h1>
       <div class="concept-identifiers">
-        <a href={`/id/${identity.id}/`}>{t("Permanent link", "永続リンク")}</a>
+        <a href={sitePath(`/id/${identity.id}/`)}>{t("Permanent link", "永続リンク")}</a>
       </div>
     </header>
 
@@ -78,7 +79,7 @@ const jsonData = content.data.format === "json" ? JSON.stringify(content.data.va
         <pre><code>{jsonData}</code></pre>
       )}
       <p class="dataset-links">
-        <a href={`/objects/${identity.id}/data/content.json`} target="_blank" rel="noopener">
+        <a href={sitePath(`/objects/${identity.id}/data/content.json`)} target="_blank" rel="noopener">
           {t("JSON data", "JSONデータ")}
         </a>
       </p>

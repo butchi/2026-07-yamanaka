@@ -8,11 +8,13 @@
     "object:create": "node scripts/create-object.mjs",
     "dev": "astro dev",
     "build": "astro check && astro build && esbuild worker/index.ts --bundle --format=esm --platform=browser --outfile=dist/server/index.js && node scripts/stage-hosting.mjs",
+    "build:pages": "astro check && astro build",
     "preview": "astro preview",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#dist\" \"#.astro\"",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:pages": "playwright test --config playwright.pages.config.ts"
   },
   "dependencies": {
     "@butchi/integer-sequences": "0.1.0"

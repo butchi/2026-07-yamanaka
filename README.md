@@ -354,6 +354,35 @@ pnpm exec playwright install chromium
 pnpm test:e2e
 ```
 
+## GitHub Pagesへのデプロイ
+
+[`deploy-pages.yml`](./.github/workflows/deploy-pages.yml) は `develop` へのpushで静的サイトをビルドし、GitHub Pagesへ公開します。既存ホスティング用の `pnpm build` はそのまま残し、PagesではWorkerを含めない `pnpm build:pages` を使用します。
+
+1. リポジトリの **Settings → Pages → Build and deployment → Source** を **GitHub Actions** に設定します。
+2. **Settings → Environments → github-pages** にデプロイブランチ制限がある場合は、`develop` を許可します。
+3. この変更を `develop` にpushし、Actionsの **Deploy to GitHub Pages** が成功することを確認します。
+
+このリポジトリの標準公開URLは `https://butchi.github.io/2026-07-yamanaka/` です。ワークフローはGitHub Pagesの設定から `SITE_URL`（origin）と `BASE_PATH` を取得するため、リポジトリ配下のURLでも、ページ・言語切り替え・保存データ・関数・画像・SEOのURLを同じプレフィックスにそろえます。独自ドメインの設定は自動変更しません。手動実行も定義していますが、GitHubの仕様上、実行ボタンを表示するにはワークフローがデフォルトブランチにも必要です。
+
+ローカルで同じ配置を確認するには、Node.js 24と指定のpnpmで次を実行します。
+
+```sh
+pnpm install --frozen-lockfile
+SITE_URL=https://butchi.github.io BASE_PATH=/2026-07-yamanaka pnpm build:pages
+SITE_URL=https://butchi.github.io BASE_PATH=/2026-07-yamanaka pnpm preview --host 127.0.0.1 --port 4399
+```
+
+プレビューは `http://127.0.0.1:4399/2026-07-yamanaka/` で確認できます。`SITE_URL`・`BASE_PATH` を指定しない場合は、従来のホスティングURLとルート配置でビルドします。
+
+```sh
+pnpm exec playwright install chromium
+pnpm test:e2e:pages
+```
+
+Pages専用テストは、ポート4399でビルドとプレビューを実行し、生成HTMLの内部リンク・実ファイル、日英の切り替え、計算UI、JSON・関数配信、UUID転送、サイトマップ、robots.txtを確認します。実行前に同じポートのプレビューを停止してください。
+
+GitHub Pagesは静的ホスティングのため、UUIDなどの転送ページはAstroのHTML meta refreshによる転送です。既存WorkerホスティングのHTTP 301や、クエリ文字列を保持した転送とは異なります。また、旧slugのJSON・関数URLはHTML転送ページになるため、プログラムからの取得・importには各詳細ページに掲載する `/objects/<UUID>/...` の実ファイルURLを使用してください。
+
 ## ディレクトリ
 
 ```text

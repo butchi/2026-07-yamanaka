@@ -1,14 +1,17 @@
+import { sitePath, stripBasePath } from "./sitePath";
+
 export const locales = ["en", "ja"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "en";
 
 export function localeFromPath(path: string): Locale {
+  path = stripBasePath(path);
   return path === "/ja" || path.startsWith("/ja/") ? "ja" : "en";
 }
 
 export function localizedPath(path: string, locale: Locale): string {
-  const neutral = path.replace(/^\/ja(?=\/|$)/, "") || "/";
-  return locale === "ja" ? `/ja${neutral}` : neutral;
+  const neutral = stripBasePath(path).replace(/^\/ja(?=\/|$)/, "") || "/";
+  return sitePath(locale === "ja" ? `/ja${neutral}` : neutral);
 }
 
 export function text(locale: Locale, en: string, ja: string): string {

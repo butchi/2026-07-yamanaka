@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header.astro";
 import "@/styles/global.css";
 import "katex/dist/katex.min.css";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+import { sitePath } from "@/lib/sitePath";
 
 interface BreadcrumbItem {
   label: string;
@@ -40,11 +41,11 @@ const alternatePaths = hasJapanese ? [
 
 const siteName = "Libra";
 const siteBase = Astro.site ?? new URL(Astro.url.origin);
-const canonicalUrl = new URL(canonical ?? Astro.url.pathname, siteBase);
+const canonicalUrl = new URL(typeof canonical === "string" ? sitePath(canonical) : canonical ?? Astro.url.pathname, siteBase);
 canonicalUrl.search = "";
 canonicalUrl.hash = "";
 
-const ogImageUrl = ogImage ? new URL(ogImage, siteBase).href : undefined;
+const ogImageUrl = ogImage ? new URL(sitePath(ogImage), siteBase).href : undefined;
 const normalizePath = (path: string) =>
   path === "/" ? path : path.replace(/\/+$/, "");
 const currentPath = normalizePath(Astro.url.pathname);
@@ -55,14 +56,14 @@ const suppliedBreadcrumbs = breadcrumbs.filter(
       index === 0 &&
       (item.label === t("Home", "ホーム") ||
         (item.href &&
-          normalizePath(new URL(item.href, siteBase).pathname) === normalizePath(homePath)))
+          normalizePath(new URL(sitePath(item.href), siteBase).pathname) === normalizePath(homePath)))
     ),
 );
 const breadcrumbItems: BreadcrumbItem[] = [
   currentPath === normalizePath(homePath)
     ? { label: t("Home", "ホーム") }
     : { label: t("Home", "ホーム"), href: homePath },
-  ...suppliedBreadcrumbs,
+  ...suppliedBreadcrumbs.map((item) => ({ ...item, href: item.href ? sitePath(item.href) : undefined })),
 ];
 
 if (currentPath !== normalizePath(homePath)) {

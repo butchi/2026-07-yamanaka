@@ -3,6 +3,7 @@ import { render, type CollectionEntry } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { objectPagePath, type ObjectIdentity } from "@/lib/objectIdentity";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+import { sitePath } from "@/lib/sitePath";
 import type { ConstantDigestDataset, ConstantStandardDataset } from "@/lib/objectDatasetTypes";
 
 interface Props {
@@ -47,7 +48,7 @@ const { Content } = await render(selectedReadme);
       <div class="concept-identifiers">
         <span>{t("Symbol", "記号")}: {value.data.symbol}</span>
         <span>{t("Irrational number", "無理数")}</span>
-        <a href={`/id/${identity.id}/`}>{t("Permanent link", "永続リンク")}</a>
+        <a href={sitePath(`/id/${identity.id}/`)}>{t("Permanent link", "永続リンク")}</a>
       </div>
     </header>
 
@@ -73,9 +74,9 @@ const { Content } = await render(selectedReadme);
       </dl>
       <p class="text-muted">{t("Both decimal values are truncated approximations, not exact representations of this irrational number.", "どちらの小数値も打ち切った近似値であり、無理数の厳密な表現ではありません。")}</p>
       <p class="dataset-links">
-        <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON (16 decimal places)", "ダイジェストJSON（小数点以下16桁）")}</a>
-        <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 decimal places)", "標準JSON（小数点以下256桁）")}</a>
-        <a href={`/objects/${identity.id}/data/value.json`} target="_blank" rel="noopener">{t("Exact value JSON", "厳密値JSON")}</a>
+        <a href={sitePath(`/objects/${identity.id}/data/digest.json`)} target="_blank" rel="noopener">{t("Digest JSON (16 decimal places)", "ダイジェストJSON（小数点以下16桁）")}</a>
+        <a href={sitePath(`/objects/${identity.id}/data/standard.json`)} target="_blank" rel="noopener">{t("Standard JSON (256 decimal places)", "標準JSON（小数点以下256桁）")}</a>
+        <a href={sitePath(`/objects/${identity.id}/data/value.json`)} target="_blank" rel="noopener">{t("Exact value JSON", "厳密値JSON")}</a>
       </p>
     </section>
 
