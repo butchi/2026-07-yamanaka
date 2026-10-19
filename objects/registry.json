@@ -22,5 +22,11 @@
     "slug": "golden-ratio",
     "type": "mathematical-constant",
     "previousSlugs": []
+  },
+  {
+    "id": "01a15005-fe79-7ac4-bfaf-8b8e82577004",
+    "slug": "fibonacci-words",
+    "type": "data-object",
+    "previousSlugs": []
   }
 ]

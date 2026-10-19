@@ -44,6 +44,21 @@ describe("object identity and permanent redirects", () => {
       .toBe("/constants/golden-ratio/");
   });
 
+  it("routes generic JSON data objects to their own page category", () => {
+    const dataObject = {
+      ...fibonacci,
+      slug: "fibonacci-words",
+      type: "data-object" as const,
+      previousSlugs: ["fibonacci-strings"],
+    };
+    expect(objectPagePath(dataObject)).toBe("/objects/fibonacci-words/");
+    const redirects = createObjectRedirects([dataObject]);
+    expect(redirects[`/id/${dataObject.id}/`]).toBe("/objects/fibonacci-words/");
+    expect(redirects["/objects/fibonacci-strings/data/content.json"])
+      .toBe(`/objects/${dataObject.id}/data/content.json`);
+    expect(redirects["/objects/fibonacci-strings/functions.js"]).toBeUndefined();
+  });
+
   it.each(["GET", "HEAD"])("serves HTTP 301 with query preservation for %s", async (method) => {
     const response = await worker.fetch(new Request(`https://example.test/id/${fibonacci.id}/?source=paper`, { method }), {
       ASSETS: { fetch: async () => { throw new Error("Redirect must not request assets"); } },

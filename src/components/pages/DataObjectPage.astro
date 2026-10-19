@@ -1,0 +1,80 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { objectPagePath, type ObjectIdentity } from "@/lib/objectIdentity";
+import type { JsonObjectDataset } from "@/lib/objectDatasetTypes";
+import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+
+interface Props {
+  object: CollectionEntry<"objects">;
+  identity: ObjectIdentity;
+  readme: CollectionEntry<"objectReadmes">;
+  japaneseReadme?: CollectionEntry<"objectReadmes">;
+  content: JsonObjectDataset;
+  relatedObjects: readonly ObjectIdentity[];
+}
+
+const { object, identity, readme, japaneseReadme, content, relatedObjects } = Astro.props;
+const data = object.data;
+if (data.type !== "data-object") throw new Error(`Object "${identity.id}" is not a JSON data object.`);
+const locale = localeFromPath(Astro.url.pathname);
+const t = (en: string, ja: string) => text(locale, en, ja);
+const seo = locale === "ja" ? data.translations?.ja?.seo : data.seo;
+if (!seo) throw new Error(`Missing ${locale} SEO for data object "${identity.id}".`);
+const selectedReadme = locale === "ja" ? japaneseReadme : readme;
+if (!selectedReadme) throw new Error(`Missing ${locale} README for data object "${identity.id}".`);
+const { Content } = await render(selectedReadme);
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  hasJapanese={Boolean(data.translations?.ja)}
+  ogType="article"
+  canonical={objectPagePath(identity)}
+  breadcrumbs={[
+    { label: t("Catalog", "カタログ"), href: locale === "ja" ? "/ja/numbers/" : "/numbers/" },
+    { label: data.name[locale] },
+  ]}
+>
+  <article class="concept-page">
+    <header class="page-header concept-header">
+      <p class="eyebrow">{t("DATA OBJECT", "データオブジェクト")}</p>
+      <h1>{data.name[locale]}</h1>
+      <div class="concept-identifiers">
+        <a href={`/id/${identity.id}/`}>{t("Permanent link", "永続リンク")}</a>
+      </div>
+    </header>
+
+    <section class="page-section sequence-first" aria-labelledby="data-heading">
+      <p class="eyebrow">DATA / JSON</p>
+      <h2 id="data-heading">{t("Structured data", "構造化データ")}</h2>
+      <pre><code>{JSON.stringify(content.data.value, null, 2)}</code></pre>
+      <p class="dataset-links">
+        <a href={`/objects/${identity.id}/data/content.json`} target="_blank" rel="noopener">
+          {t("JSON data", "JSONデータ")}
+        </a>
+      </p>
+    </section>
+
+    <section class="page-section" aria-labelledby="overview-heading">
+      <p class="eyebrow">DOCUMENTATION / OVERVIEW</p>
+      <h2 id="overview-heading">{t("Documentation", "解説")}</h2>
+      <div class="object-document"><Content /></div>
+    </section>
+
+    {relatedObjects.length > 0 && (
+      <section class="page-section" aria-labelledby="related-heading">
+        <h2 id="related-heading">{t("Related objects", "関連オブジェクト")}</h2>
+        <div class="related-grid">
+          {relatedObjects.map((related) => (
+            <a class="related-card" href={localizedPath(objectPagePath(related), locale)}>
+              <span>{related.slug}</span>
+              <strong>{related.slug}</strong>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </article>
+</BaseLayout>

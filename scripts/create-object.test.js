@@ -69,6 +69,30 @@ describe("object:create", () => {
     expect(readdirSync(join(root, "objects")).sort()).toEqual(["registry.json", "triangular"]);
   });
 
+  it("creates a registered generic JSON data object with bilingual names", () => {
+    const root = fixture();
+    const result = createObject({
+      ...options(root),
+      type: "data-object",
+      name: "Fibonacci words",
+      nameJa: "フィボナッチ語",
+      description: "Finite words defined by Fibonacci recurrence.",
+    });
+    expect(JSON.parse(read(root, "triangular/object.json"))).toEqual({
+      type: "data-object",
+      id: result.id,
+      name: { en: "Fibonacci words", ja: "フィボナッチ語" },
+      seo: {
+        title: "Fibonacci words — Data and documentation | Libra",
+        description: "Finite words defined by Fibonacci recurrence.",
+      },
+      relatedObjectIds: [],
+    });
+    expect(JSON.parse(read(root, "registry.json"))).toEqual([
+      { id: result.id, slug: "triangular", type: "data-object", previousSlugs: [] },
+    ]);
+  });
+
   it("preserves hand-authored README and other files byte for byte", () => {
     const root = fixture();
     mkdirSync(join(root, "objects/triangular"));
@@ -118,6 +142,12 @@ describe("object:create", () => {
     for (const value of ["", "  ", "a\nb", "a\0b"]) {
       expect(() => createObject({ ...options(root), [key]: value })).toThrow(key);
     }
+    expect(read(root, "registry.json")).toBe("[]");
+  });
+
+  it("requires a Japanese name for a generic data object", () => {
+    const root = fixture();
+    expect(() => createObject({ ...options(root), type: "data-object" })).toThrow(/nameJa/);
     expect(read(root, "registry.json")).toBe("[]");
   });
 

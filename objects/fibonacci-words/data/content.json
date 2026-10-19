@@ -1,0 +1,20 @@
+{
+  "objectId": "01a15005-fe79-7ac4-bfaf-8b8e82577004",
+  "format": "json",
+  "value": {
+    "definition": {
+      "indexOrigin": 0,
+      "initialTerms": ["0", "01"],
+      "recurrence": "W_n = W_(n-1) concatenated with W_(n-2), for n >= 2"
+    },
+    "terms": [
+      "0",
+      "01",
+      "010",
+      "01001",
+      "01001010",
+      "0100101001001",
+      "010010100100101001010"
+    ]
+  }
+}

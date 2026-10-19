@@ -44,11 +44,23 @@ export type ConstantStandardDataset = {
   };
 };
 
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
+
+export type JsonObjectDataset = {
+  id: string;
+  data: {
+    objectId: string;
+    format: "json";
+    value: JsonValue;
+  };
+};
+
 export type ObjectDatasetEntry = {
   id: string;
   data:
     | IntegerSequenceDigestDataset["data"]
     | IntegerSequenceStandardDataset["data"]
     | ConstantDigestDataset["data"]
-    | ConstantStandardDataset["data"];
+    | ConstantStandardDataset["data"]
+    | JsonObjectDataset["data"];
 };

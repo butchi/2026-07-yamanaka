@@ -1,0 +1,19 @@
+---
+import DataObjectPage from "@/components/pages/DataObjectPage.astro";
+import { resolveDataObjectEntries } from "@/lib/dataObjectEntries";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const [objects, readmes, datasets] = await Promise.all([
+    getCollection("objects"),
+    getCollection("objectReadmes"),
+    getCollection("datasets"),
+  ]);
+  return resolveDataObjectEntries(objects, readmes, datasets).map((entry) => ({
+    params: { slug: entry.identity.slug },
+    props: entry,
+  }));
+}
+---
+
+<DataObjectPage {...Astro.props} />

@@ -52,12 +52,23 @@ const objects = defineCollection({
       relatedObjectIds: z.array(objectId),
       translations,
     }).strict(),
+    z.object({
+      type: z.literal("data-object"),
+      id: objectId,
+      name: z.object({
+        en: z.string().trim().min(1),
+        ja: z.string().trim().min(1),
+      }).strict(),
+      seo,
+      relatedObjectIds: z.array(objectId),
+      translations,
+    }).strict(),
   ]),
 });
 
 const datasets = defineCollection({
   loader: glob({
-    pattern: "*/data/{digest,standard}.json",
+    pattern: "*/data/{digest,standard,content}.json",
     base: "./objects",
     generateId: ({ entry }) => entry.replace(/\.json$/, ""),
   }),
@@ -120,6 +131,11 @@ const datasets = defineCollection({
         });
       }
     }),
+    z.object({
+      objectId,
+      format: z.literal("json"),
+      value: z.json(),
+    }).strict(),
   ]),
 });
 

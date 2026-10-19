@@ -6,7 +6,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 ## 現在の実装
 
-このリポジトリは再構築の初期段階です。現状はAstroによる静的サイトに、整数列と数学定数を掲載しています。整数列はフィボナッチ数・素数・平方数、定数は無理数である黄金比です。
+このリポジトリは再構築の初期段階です。現状はAstroによる静的サイトに、整数列・数学定数・汎用JSONデータを掲載しています。整数列はフィボナッチ数・素数・平方数、定数は無理数である黄金比、汎用データはフィボナッチ語（フィボナッチ文字列）の初期項です。
 
 - `/` — Libraの目的と注目オブジェクト
 - `/numbers/` — 数学オブジェクトカタログ（初期URLを維持）
@@ -14,9 +14,11 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 - `/numbers/prime/` — 素数のデータ、定義、関数、実装情報
 - `/numbers/square/` — 平方数のデータ、定義、関数、実装情報
 - `/constants/golden-ratio/` — 黄金比の厳密値、小数近似、定義と性質
+- `/objects/fibonacci-words/` — フィボナッチ語（フィボナッチ文字列）のJSONデータと解説
 - `/objects/<UUID>/data/digest.json` — 黄金比のコンパクトなJSON数値近似（小数点以下16桁）
 - `/objects/<UUID>/data/standard.json` — 黄金比の通常の10進表記による近似（小数点以下256桁を文字列で保持）
 - `/objects/<UUID>/data/value.json` — 黄金比の記号・厳密値とContent MathMLを含む型付きデータ
+- `/objects/<UUID>/data/content.json` — 汎用オブジェクトの数値・文字列・配列・オブジェクトなどのJSON値
 - `/about/` — 設計方針、貢献方針、Miyaburu構想
 - `/license/` — MIT License
 
@@ -24,7 +26,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 ### オブジェクトデータの構成
 
-すべての種類のオブジェクトは `objects/<slug>/` に保存し、`object.json` の `type` で形式を識別します。現在の `integer-sequence` は計算ライブラリ・添字付きの `digest` / `standard` 整数データを使い、`mathematical-constant` は厳密な記号値を `data/value.json` に、近似値を小数点以下16桁の `digest` と256桁の `standard` に分けて保持します。近似値は無理数を厳密に表すものではありません。種類固有の機能と検証は個別に定義し、新しい形式を追加する際は `objects` の保存先を分けず、型・データ形式・表示処理を拡張します。
+すべての種類のオブジェクトは `objects/<slug>/` に保存し、`object.json` の `type` で形式を識別します。`integer-sequence` は計算ライブラリ・添字付きの `digest` / `standard` 整数データ、`mathematical-constant` は厳密な記号値と近似値を保持します。`data-object` は任意のJSON値を `data/content.json` に格納でき、数値や文字列の単体値、文字列の列、その他の配列・オブジェクトも扱えます。例えばフィボナッチ数列とフィボナッチ語（Fibonacci word）は、同じ題材に関係していても異なる型のオブジェクトとして登録できます。日本語では「フィボナッチ語」と「フィボナッチ文字列」の両方の用例があるため、この項目では両方を併記します。JSON数値で安全に表現できない大きな整数や精密な小数は、文字列と明示的な符号化情報で保存します。定数の近似値は無理数を厳密に表すものではありません。種類固有の機能と検証は個別に定義し、新しい形式を追加する際は `objects` の保存先を分けず、型・データ形式・表示処理を拡張します。
 
 サイトは英語をデフォルトとし、日本語版は `/ja/` 配下（例：`/ja/numbers/fibonacci/`）に提供します。ヘッダーの言語リンクで同じページの言語を切り替えられます。従来の日本語URLは英語表示になりましたが、UUID・保存データ・関数のURLは変更していません。
 
@@ -103,7 +105,7 @@ OEISのように対象を探してつながりをたどれる強みを受け継�
 
 例えば、フィボナッチ数の英語説明は [`objects/fibonacci/README.md`](./objects/fibonacci/README.md)、日本語説明は [`README.ja.md`](./objects/fibonacci/README.ja.md)、構造化データは [`objects/fibonacci/object.json`](./objects/fibonacci/object.json) を編集し、対象のディレクトリを中心に差分をレビュー・コミットします。本文変更だけならTypeScriptやAstroの編集は不要です。Markdownにはフロントマターを付けず、H1から本文を開始します。SEOなどのメタデータはJSONに集約しています。
 
-公開する項目では、同じディレクトリ内の `object.json` と英語の `README.md` を必ず組にし、日本語訳は `README.ja.md` を追加します。手作業で投稿するDraft PRでは、後述の登録補完まで本文だけでも構いません。ディレクトリ名は人が対象を識別するための目印で、正式な項目IDは `object.json` のUUIDです。データセットは正確に16項・256項であること、十進整数文字列の形式、オブジェクトID、配置先のメタデータとのUUID一致、添字原点、およびダイジェストが標準データの先頭と一致することを検証します。項目本文の読み込み対象は `README.md` と `README.ja.md`、メタデータは `object.json` です。データの公開用検証は `data/digest.json`、`data/standard.json` を対象とするため、対象固有の補助データや補足文書を追加しても別項目として誤認しません。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
+公開する項目では、同じディレクトリ内の `object.json` と英語の `README.md` を必ず組にし、日本語訳は `README.ja.md` を追加します。手作業で投稿するDraft PRでは、後述の登録補完まで本文だけでも構いません。ディレクトリ名は人が対象を識別するための目印で、正式な項目IDは `object.json` のUUIDです。整数列データセットは正確に16項・256項であること、十進整数文字列の形式、オブジェクトID、配置先のメタデータとのUUID一致、添字原点、およびダイジェストが標準データの先頭と一致することを検証します。汎用データオブジェクトは `data/content.json` の `objectId` と `format: "json"` を検証し、`value` にJSONとして有効な任意の値を保存します。項目本文の読み込み対象は `README.md` と `README.ja.md`、メタデータは `object.json` です。HTML等の埋め込みは信頼できるリポジトリ内コンテンツとして扱うため、投稿時にはマークアップもレビューしてください。GFMと標準マークアップを使い、MDXの実行可能なコンポーネントは用いません。
 
 ### 新規項目の作成・登録
 
@@ -117,9 +119,16 @@ UUIDを投稿者やメンテナーが手で生成・記入する必要はあり�
 pnpm object:create --slug triangular --name "Triangular numbers" --description "Definitions, properties and examples of triangular numbers."
 ```
 
+- 汎用JSONデータの項目を作る場合は `--type data-object` と英語・日本語の項目名を指定します。`data/content.json` は別途作成します。
+
+```sh
+pnpm object:create --type data-object --slug fibonacci-words --name "Fibonacci words" --name-ja "フィボナッチ語（フィボナッチ文字列）" --description "Finite words defined by Fibonacci recurrence."
+```
+
 - UUIDv7を一度だけ発行し、`objects/triangular/object.json` と `objects/registry.json` に同じUUIDを保存します。
 - `objects/triangular/README.md` がなければ本文の雛形を作ります。既にあれば、本文・改行コード・その他のファイルを変更しません。
 - 計算アダプターの `conceptId` はslugと同じ値を初期値とします。異なる場合は `--concept-id triangularNumbers` のように指定します。アダプター自体を実装・登録するコマンドではありません。
+- `data-object` では `name` を英語名、`name-ja` を日本語名として登録し、計算アダプターは使いません。JSONデータを `data/content.json` に追加してください。
 - 同じslug・UUIDで登録済みなら `Already registered` と表示し、ファイルを変更しません。再実行してもUUIDやSEO情報を上書きしません。登録後の説明修正はファイルを編集してください。
 - 現在・過去のslugの重複、UUIDの重複、メタデータと台帳の不一致、不正な入力はエラーにします。既存項目をコピーしてUUIDを引き継がないでください。
 - 新規作成時の保存先はslugと同名です。登録後に保存フォルダを改名した項目の更新・修復には、この作成コマンドではなく通常の編集を使います。
@@ -140,7 +149,7 @@ pnpm object:create --slug triangular --name "Triangular numbers" --description "
 [`Create object draft`](./.github/workflows/create-object.yml) は `workflow_dispatch` の手動実行専用です。同じ生成スクリプトを使い、`develop` へ直接書き込まずDraft PRを作ります。
 
 1. Actionsで **Create object draft → Run workflow** を開きます。通常はワークフローの実行ブランチに `develop` を選びます。
-2. `slug`、英語表示名 `name`、英語SEO説明文 `description`、必要なら `concept_id` を入力します。日本語訳は生成後に本文とSEOを追加します。
+2. `slug`、英語表示名 `name`、英語SEO説明文 `description` を入力します。整数列は `type` の既定値を使い、必要なら `concept_id` を指定します。汎用JSONデータは `type` を `data-object` にし、日本語表示名 `name_ja` も入力します。日本語訳は生成後に本文とSEOを追加します。
 3. 新規の雛形作成なら `source_branch` は `develop` のままにします。手作業の本文を補完する場合は、レビュー済みの投稿コミットを含む、このリポジトリ内のブランチを指定します。Forkのブランチを直接指定する機能はありません。
 4. ワークフローは `develop` 上の信頼できる生成コードで、指定ブランチのデータを処理します。指定ブランチのスクリプト、依存関係、ビルドは実行しません。
 5. `objects/create-<slug>` ブランチへ生成結果をコミット・pushし、baseが `develop` のDraft PRを作ります。元の投稿PRがある場合は相互リンクし、補完PRに内容・著者情報が引き継がれていることを確認して整理します。

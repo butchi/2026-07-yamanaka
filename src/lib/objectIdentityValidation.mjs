@@ -8,7 +8,7 @@ export function validateObjectSlug(slug) {
   return slug;
 }
 
-/** @param {readonly { id: string, slug: string, type?: "integer-sequence" | "mathematical-constant", previousSlugs: readonly string[] }[]} entries */
+/** @param {readonly { id: string, slug: string, type?: "integer-sequence" | "mathematical-constant" | "data-object", previousSlugs: readonly string[] }[]} entries */
 export function validateObjectIdentities(entries) {
   if (!Array.isArray(entries)) throw new Error("Object registry must be an array.");
   const ids = new Set();
@@ -20,7 +20,12 @@ export function validateObjectIdentities(entries) {
     if (!Array.isArray(entry.previousSlugs)) {
       throw new Error(`Object "${entry.id}" requires previousSlugs.`);
     }
-    if (entry.type !== undefined && entry.type !== "integer-sequence" && entry.type !== "mathematical-constant") {
+    if (
+      entry.type !== undefined &&
+      entry.type !== "integer-sequence" &&
+      entry.type !== "mathematical-constant" &&
+      entry.type !== "data-object"
+    ) {
       throw new Error(`Object "${entry.id}" has an invalid type.`);
     }
     ids.add(entry.id);

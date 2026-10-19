@@ -41,4 +41,25 @@ describe("persisted object datasets", () => {
     expect(digest.terms.every(Number.isSafeInteger)).toBe(true);
     expect(digest.terms.map(String)).toEqual(expectedTerms.slice(0, 16));
   });
+
+  it("stores Fibonacci words as a zero-based JSON string sequence", async () => {
+    const object = JSON.parse(
+      await readFile(resolve("objects", "fibonacci-words", "object.json"), "utf8"),
+    ) as { id: string; type: string };
+    const content = JSON.parse(
+      await readFile(resolve("objects", "fibonacci-words", "data", "content.json"), "utf8"),
+    ) as { objectId: string; format: string; value: { definition: { indexOrigin: number }; terms: string[] } };
+    expect(object.type).toBe("data-object");
+    expect(content).toMatchObject({
+      objectId: object.id,
+      format: "json",
+      value: { definition: { indexOrigin: 0 } },
+    });
+    expect(content.value.terms.slice(0, 2)).toEqual(["0", "01"]);
+    for (let index = 2; index < content.value.terms.length; index += 1) {
+      expect(content.value.terms[index]).toBe(
+        content.value.terms[index - 1] + content.value.terms[index - 2],
+      );
+    }
+  });
 });

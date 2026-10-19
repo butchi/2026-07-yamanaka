@@ -5,6 +5,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import { filterIntegerSequenceEntries, resolveObjectEntries } from "@/lib/objectEntries";
 import { resolveConstantEntries } from "@/lib/constantEntries";
+import { resolveDataObjectEntries } from "@/lib/dataObjectEntries";
 import { objectPagePath } from "@/lib/objectIdentity";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
 const locale = localeFromPath(Astro.url.pathname);
@@ -19,18 +20,19 @@ const [objects, readmes, datasets, objectValues] = await Promise.all([
 const sequences = filterIntegerSequenceEntries(objects, readmes);
 const concepts = resolveObjectEntries(sequences.objects, sequences.readmes, datasets);
 const constantEntries = resolveConstantEntries(objects, readmes, objectValues, datasets);
+const dataObjectEntries = resolveDataObjectEntries(objects, readmes, datasets);
 ---
 
 <BaseLayout
   title={t("Mathematical object catalog | Libra", "数学オブジェクトカタログ｜Libra")}
-  description={t("Explore mathematical sequences and constants through exact data, useful functions and documentation.", "数学の数列や定数を、正確なデータ、関数、ドキュメントとともに紹介します。")}
+  description={t("Explore mathematical sequences, constants and structured data through exact values and documentation.", "数学の数列や定数、構造化データを、正確な値と解説とともに紹介します。")}
   breadcrumbs={[{ label: t("Catalog", "カタログ") }, { label: t("Mathematical objects", "数学オブジェクト") }]}
 >
   <header class="page-header">
     <p class="eyebrow">LIBRA / CATALOG / MATHEMATICAL OBJECTS</p>
     <h1>{t("Mathematical object catalog", "数学オブジェクトカタログ")}</h1>
     <p class="lead">
-      {t("Explore integer sequences and mathematical constants. Each object distinguishes exact data from approximations and documents its conventions.", "整数列や数学定数を紹介します。各項目では厳密値と近似値を区別し、データの扱いを明示します。")}
+      {t("Explore integer sequences, mathematical constants and other structured data. Each object documents its data and conventions.", "整数列や数学定数に加え、さまざまな構造化データを紹介します。各項目でデータと扱いを明示します。")}
     </p>
   </header>
 
@@ -105,5 +107,28 @@ const constantEntries = resolveConstantEntries(objects, readmes, objectValues, d
         </div>
       </article>
     ))}
+    {dataObjectEntries.map(({ object, identity, content, japaneseReadme }) => {
+      const target = localizedPath(objectPagePath(identity), japaneseReadme ? locale : "en");
+      return (
+        <article class="catalog-item">
+          <div class="catalog-item__summary">
+            <div>
+              <p class="concept-card__english">{object.data.name.en}</p>
+              <h2><a href={target}>{object.data.name[locale]}<span aria-hidden="true"> ↗</span></a></h2>
+            </div>
+            <span class="support-badge">{t("JSON data", "JSONデータ")}</span>
+          </div>
+          <p>{object.data.translations?.ja?.seo.description && locale === "ja" ? object.data.translations.ja.seo.description : object.data.seo.description}</p>
+          <pre><code>{JSON.stringify(content.data.value)}</code></pre>
+          <p class="dataset-links">
+            <a href={`/objects/${identity.id}/data/content.json`} target="_blank" rel="noopener">{t("JSON data", "JSONデータ")}</a>
+          </p>
+          <div class="catalog-item__footer">
+            <p><span class="support-badge">{t("Arbitrary JSON value", "任意のJSON値")}</span></p>
+            <a class="primary-link" href={target}>{locale === "ja" && !japaneseReadme ? "日本語版は未提供・英語版を見る" : t(`Explore ${object.data.name.en}`, `${object.data.name.ja}の詳細へ`)}</a>
+          </div>
+        </article>
+      );
+    })}
   </div>
 </BaseLayout>

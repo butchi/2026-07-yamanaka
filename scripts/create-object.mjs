@@ -57,9 +57,15 @@ function readmeTemplate(name) {
 `;
 }
 
-export function createObject({ root, slug, name, description, conceptId = slug }) {
+export function createObject({ root, slug, name, nameJa, description, conceptId = slug, type = "integer-sequence" }) {
   validateObjectSlug(slug);
-  for (const [key, value] of Object.entries({ name, description, conceptId })) {
+  if (type !== "integer-sequence" && type !== "data-object") {
+    throw new Error('type must be "integer-sequence" or "data-object".');
+  }
+  const requiredValues = type === "data-object"
+    ? { name, nameJa, description }
+    : { name, description, conceptId };
+  for (const [key, value] of Object.entries(requiredValues)) {
     if (typeof value !== "string" || !value.trim() || /[\r\n\0]/.test(value)) {
       throw new Error(`${key} must be a non-empty single-line string.`);
     }
@@ -97,7 +103,13 @@ export function createObject({ root, slug, name, description, conceptId = slug }
     const existing = metadata.find((entry) => entry.directory === slug);
     const identity = registry.find((entry) => entry.slug === slug || entry.previousSlugs.includes(slug));
     if (existing) {
-      if (!identity || identity.slug !== slug || identity.id !== existing.data.id) {
+      if (
+        !identity ||
+        identity.slug !== slug ||
+        identity.id !== existing.data.id ||
+        (identity.type !== undefined && identity.type !== type) ||
+        (existing.data.type !== undefined && existing.data.type !== type)
+      ) {
         throw new Error(`Inconsistent registration for "${slug}"; no files were changed.`);
       }
       if (existsSync(readmePath)) requireRegularFile(readmePath);
@@ -115,13 +127,21 @@ export function createObject({ root, slug, name, description, conceptId = slug }
     if (seenIds.has(id) || registry.some((entry) => entry.id === id)) {
       throw new Error("Generated UUID already exists; retry creation.");
     }
-    const data = {
-      type: "integer-sequence",
-      id,
-      conceptId: conceptId.trim(),
-      seo: { title: `${name.trim()} — Data, functions and documentation | Libra`, description: description.trim() },
-      relatedObjectIds: [],
-    };
+    const data = type === "integer-sequence"
+      ? {
+          type,
+          id,
+          conceptId: conceptId.trim(),
+          seo: { title: `${name.trim()} — Data, functions and documentation | Libra`, description: description.trim() },
+          relatedObjectIds: [],
+        }
+      : {
+          type,
+          id,
+          name: { en: name.trim(), ja: nameJa.trim() },
+          seo: { title: `${name.trim()} — Data and documentation | Libra`, description: description.trim() },
+          relatedObjectIds: [],
+        };
     writeFileSync(metadataPath, `${JSON.stringify(data, null, 2)}\n`, { flag: "wx" });
     createdFiles.push(metadataPath);
     if (!existsSync(readmePath)) {
@@ -129,7 +149,7 @@ export function createObject({ root, slug, name, description, conceptId = slug }
       createdFiles.push(readmePath);
     }
     registryTemporary = join(objects, `.registry-${randomBytes(8).toString("hex")}.tmp`);
-    writeFileSync(registryTemporary, `${JSON.stringify([...registry, { id, slug, type: "integer-sequence", previousSlugs: [] }], null, 2)}\n`, { flag: "wx" });
+    writeFileSync(registryTemporary, `${JSON.stringify([...registry, { id, slug, type, previousSlugs: [] }], null, 2)}\n`, { flag: "wx" });
     renameSync(registryTemporary, registryPath);
     registryTemporary = undefined;
     return { id, slug, created: true };
@@ -144,21 +164,28 @@ export function createObject({ root, slug, name, description, conceptId = slug }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const usage = `Usage: pnpm object:create --slug <slug> --name <name> --description <description> [--concept-id <id>] [--root <repository>]
+  const usage = `Usage: pnpm object:create --slug <slug> --name <name> --description <description> [--type <type>] [--name-ja <name>] [--concept-id <id>] [--root <repository>]
 
 Required:
   --slug         Object slug / directory (e.g. triangular)
   --name         Display name
   --description  SEO description
+Optional:
+  --type         integer-sequence (default) or data-object
+  --name-ja      Japanese display name (required for data-object)
+  --concept-id   Calculation adapter (integer-sequence only)
 
 Example:
-  pnpm object:create --slug triangular --name "Triangular numbers" --description "Definitions, properties and examples of triangular numbers."`;
+  pnpm object:create --slug triangular --name "Triangular numbers" --description "Definitions, properties and examples of triangular numbers."
+  pnpm object:create --type data-object --slug fibonacci-words --name "Fibonacci words" --name-ja "フィボナッチ語" --description "Finite words defined by Fibonacci recurrence."`;
   try {
     const { values } = parseArgs({
       options: {
         slug: { type: "string" },
         name: { type: "string" },
         description: { type: "string" },
+        type: { type: "string" },
+        "name-ja": { type: "string" },
         "concept-id": { type: "string" },
         root: { type: "string", default: fileURLToPath(new URL("../", import.meta.url)) },
         help: { type: "boolean" },
@@ -173,10 +200,12 @@ Example:
       }
       const result = createObject({
         root: values.root, slug: values.slug, name: values.name,
-        description: values.description, conceptId: values["concept-id"] ?? values.slug,
+        nameJa: values["name-ja"], description: values.description,
+        type: values.type ?? "integer-sequence",
+        conceptId: values["concept-id"] ?? values.slug,
       });
       console.log(`${result.created ? "Created" : "Already registered"}: ${result.slug} (${result.id})`);
-      console.log("Draft only: complete the README, datasets, implementation and calculation adapter before publishing.");
+      console.log("Draft only: complete the README, datasets and any applicable implementation before publishing.");
     }
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
