@@ -74,7 +74,13 @@ import { github } from "@/lib/github";
       <nav class="hero-actions" aria-label="GitHubへの投稿">
         <a class="primary-link" href={github.compareUrl}>PRを作成する（GitHub）</a>
         <a href={github.treeUrl}>投稿先のdevelopブランチを見る</a>
+        <a href={`${github.treeUrl}/README.md#新規項目の作成登録`}>新規項目の作成・登録手順</a>
       </nav>
+      <p>
+        新規項目は <code>pnpm object:create</code> で本文雛形とメタデータを作成できます。UUIDの手動発行は不要です。
+        本文だけを手作業で投稿する場合は、メンテナーが同じコマンド、または手動実行のGitHub Actionsで登録を補完します。
+        データや計算実装を含む公開条件がそろうまではDraft PRとして扱ってください。
+      </p>
     </div>
     <div class="notice">
       <strong>現在の段階：</strong>

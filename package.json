@@ -5,6 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@11.9.0",
   "scripts": {
+    "object:create": "node scripts/create-object.mjs",
     "dev": "astro dev",
     "build": "astro check && astro build && esbuild worker/index.ts --bundle --format=esm --platform=browser --outfile=dist/server/index.js && node scripts/stage-hosting.mjs",
     "preview": "astro preview",

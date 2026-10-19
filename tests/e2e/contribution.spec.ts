@@ -17,6 +17,11 @@ test("共通ナビゲーションからdevelop向けの投稿手順に進める"
     .toHaveAttribute("href", compareUrl);
   await expect(contribution.getByRole("link", { name: "投稿先のdevelopブランチを見る", exact: true }))
     .toHaveAttribute("href", `${repositoryUrl}/tree/develop`);
+  await expect(contribution.getByRole("link", { name: "新規項目の作成・登録手順", exact: true }))
+    .toHaveAttribute("href", `${repositoryUrl}/tree/develop/README.md#新規項目の作成登録`);
+  await expect(contribution).toContainText("pnpm object:create");
+  await expect(contribution).toContainText("UUIDの手動発行は不要");
+  await expect(contribution).toContainText("Draft PR");
   await expect(page.getByRole("navigation", { name: "フッターナビゲーション", exact: true })
     .getByRole("link", { name: "編集・PRを送る", exact: true }))
     .toHaveAttribute("href", "/about/#contribution-heading");

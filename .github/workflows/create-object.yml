@@ -1,0 +1,103 @@
+name: Create object draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "New object slug / directory (e.g. triangular)"
+        required: true
+        type: string
+      name:
+        description: "Display name"
+        required: true
+        type: string
+      description:
+        description: "SEO description"
+        required: true
+        type: string
+      concept_id:
+        description: "Calculation adapter ID (defaults to slug)"
+        type: string
+      source_branch:
+        description: "Reviewed branch in this repository; contributor code is not executed"
+        default: develop
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: create-object-${{ inputs.slug }}
+  cancel-in-progress: false
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    env:
+      OBJECT_SLUG: ${{ inputs.slug }}
+      OBJECT_NAME: ${{ inputs.name }}
+      OBJECT_DESCRIPTION: ${{ inputs.description }}
+      OBJECT_CONCEPT_ID: ${{ inputs.concept_id }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Check out trusted generation tools
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          path: tools
+          persist-credentials: false
+
+      - name: Check out draft content without running its code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_branch }}
+          path: draft
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Validate slug and reserve a new branch name
+        working-directory: draft
+        run: |
+          node --input-type=module -e 'import { validateObjectSlug } from "../tools/src/lib/objectIdentityValidation.mjs"; validateObjectSlug(process.env.OBJECT_SLUG);'
+          branch="objects/create-$OBJECT_SLUG"
+          gh auth setup-git
+          if git ls-remote --exit-code --heads origin "refs/heads/$branch"; then
+            echo "::error::Draft branch $branch already exists. Continue that draft; do not issue another UUID."
+            exit 1
+          else
+            status=$?
+            if [ "$status" -ne 2 ]; then exit "$status"; fi
+          fi
+          git switch -c "$branch"
+
+      - name: Generate metadata and preserve existing content
+        run: |
+          node tools/scripts/create-object.mjs \
+            --root "$GITHUB_WORKSPACE/draft" \
+            --slug "$OBJECT_SLUG" \
+            --name "$OBJECT_NAME" \
+            --description "$OBJECT_DESCRIPTION" \
+            --concept-id "${OBJECT_CONCEPT_ID:-$OBJECT_SLUG}"
+
+      - name: Commit and open a Draft PR
+        working-directory: draft
+        run: |
+          git add -- "objects/$OBJECT_SLUG/object.json" "objects/$OBJECT_SLUG/README.md" objects/registry.json
+          if git diff --cached --quiet; then
+            echo "::error::The object is already registered; no new draft was created."
+            exit 1
+          fi
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Create object draft: $OBJECT_SLUG" \
+            -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git push origin "HEAD:refs/heads/objects/create-$OBJECT_SLUG"
+          gh pr create --draft --base develop --head "objects/create-$OBJECT_SLUG" \
+            --title "Create object draft: $OBJECT_NAME" \
+            --body "Generated with object:create. Existing content was preserved. Complete definitions, sources, datasets, implementation and adapter registration; run tests and the build before marking this PR ready. If this supplements a manual contribution, link the original PR and retain its authorship."

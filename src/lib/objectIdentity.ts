@@ -1,30 +1,12 @@
 import registry from "../../objects/registry.json" with { type: "json" };
+import { validateObjectIdentities } from "./objectIdentityValidation.mjs";
+
+export { uuidV7Pattern, validateObjectIdentities } from "./objectIdentityValidation.mjs";
 
 export interface ObjectIdentity {
   id: string;
   slug: string;
   previousSlugs: readonly string[];
-}
-
-export const uuidV7Pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-export function validateObjectIdentities(entries: readonly ObjectIdentity[]) {
-  const ids = new Set<string>();
-  const slugs = new Set<string>();
-  for (const entry of entries) {
-    if (!uuidV7Pattern.test(entry.id) || ids.has(entry.id)) {
-      throw new Error(`Invalid or duplicate object UUIDv7 "${entry.id}".`);
-    }
-    ids.add(entry.id);
-    for (const slug of [entry.slug, ...entry.previousSlugs]) {
-      if (!slugPattern.test(slug) || uuidV7Pattern.test(slug) || slugs.has(slug)) {
-        throw new Error(`Invalid, duplicate, or previously used object slug "${slug}".`);
-      }
-      slugs.add(slug);
-    }
-  }
-  return entries;
 }
 
 export const objectIdentities = validateObjectIdentities(registry);
