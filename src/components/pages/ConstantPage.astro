@@ -3,6 +3,7 @@ import { render, type CollectionEntry } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { objectPagePath, type ObjectIdentity } from "@/lib/objectIdentity";
 import { localeFromPath, localizedPath, text } from "@/lib/i18n";
+import type { ConstantDigestDataset, ConstantStandardDataset } from "@/lib/objectDatasetTypes";
 
 interface Props {
   constant: CollectionEntry<"objects">;
@@ -10,10 +11,12 @@ interface Props {
   readme: CollectionEntry<"objectReadmes">;
   japaneseReadme?: CollectionEntry<"objectReadmes">;
   value: CollectionEntry<"objectValues">;
+  digest: ConstantDigestDataset;
+  standard: ConstantStandardDataset;
   relatedObjects: readonly ObjectIdentity[];
 }
 
-const { constant, identity, readme, japaneseReadme, value, relatedObjects } = Astro.props;
+const { constant, identity, readme, japaneseReadme, value, digest, standard, relatedObjects } = Astro.props;
 const locale = localeFromPath(Astro.url.pathname);
 const t = (en: string, ja: string) => text(locale, en, ja);
 const data = constant.data;
@@ -57,13 +60,19 @@ const { Content } = await render(selectedReadme);
           <dd><code>{value.data.symbol} = {value.data.exactValue}</code></dd>
         </div>
         <div>
-          <dt>{t("Decimal approximation", "小数近似")}</dt>
-          <dd><code>{value.data.decimalApproximation}…</code></dd>
+          <dt>{t("Digest approximation (16 decimal places)", "ダイジェスト近似値（小数点以下16桁）")}</dt>
+          <dd><code>{digest.data.value}</code></dd>
+        </div>
+        <div>
+          <dt>{t("Standard approximation (256 decimal places)", "標準近似値（小数点以下256桁）")}</dt>
+          <dd><code>{standard.data.value}</code></dd>
         </div>
       </dl>
-      <p class="text-muted">{t(`The decimal is truncated after ${value.data.decimalPlaces} digits after the decimal point. It is not an exact representation of this irrational number.`, `小数点以下${value.data.decimalPlaces}桁で打ち切った近似値です。無理数の厳密な表現ではありません。`)}</p>
+      <p class="text-muted">{t("Both decimal values are truncated approximations, not exact representations of this irrational number.", "どちらの小数値も打ち切った近似値であり、無理数の厳密な表現ではありません。")}</p>
       <p class="dataset-links">
-        <a href={`/objects/${identity.id}/data/value.json`} target="_blank" rel="noopener">{t("Value data (JSON)", "値データ（JSON）")}</a>
+        <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON (16 decimal places)", "ダイジェストJSON（小数点以下16桁）")}</a>
+        <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 decimal places)", "標準JSON（小数点以下256桁）")}</a>
+        <a href={`/objects/${identity.id}/data/value.json`} target="_blank" rel="noopener">{t("Exact value JSON", "厳密値JSON")}</a>
       </p>
     </section>
 

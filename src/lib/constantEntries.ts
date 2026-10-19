@@ -1,4 +1,5 @@
 import { objectIdentities, type ObjectIdentity, validateObjectIdentities } from "./objectIdentity";
+import type { ConstantDigestDataset, ConstantStandardDataset, ObjectDatasetEntry } from "./objectDatasetTypes";
 
 export function resolveConstantEntries<
   ObjectEntry extends {
@@ -21,15 +22,13 @@ export function resolveConstantEntries<
       valueType: string;
       symbol: string;
       exactValue: string;
-      decimalApproximation: string;
-      approximationMethod: string;
-      decimalPlaces: number;
     };
   },
 >(
   objects: readonly ObjectEntry[],
   readmes: readonly ReadmeEntry[],
   values: readonly ValueEntry[],
+  datasets: readonly ObjectDatasetEntry[],
   identities: readonly ObjectIdentity[] = objectIdentities,
 ) {
   validateObjectIdentities(identities);
@@ -43,9 +42,18 @@ export function resolveConstantEntries<
   }
   const readmesById = new Map(readmes.map((readme) => [readme.id, readme]));
   const valuesById = new Map(values.map((value) => [value.data.objectId, value]));
+  const constantDatasets = datasets.filter(
+    (dataset): dataset is ConstantDigestDataset | ConstantStandardDataset =>
+      "valueType" in dataset.data,
+  );
+  const datasetsById = new Map(constantDatasets.map((dataset) => [dataset.id, dataset]));
   const identitiesById = new Map(identities.map((identity) => [identity.id, identity]));
-  if (readmesById.size !== readmes.length || valuesById.size !== values.length) {
-    throw new Error("Duplicate object README or value dataset.");
+  if (
+    readmesById.size !== readmes.length ||
+    valuesById.size !== values.length ||
+    datasetsById.size !== constantDatasets.length
+  ) {
+    throw new Error("Duplicate object README or constant dataset.");
   }
 
   for (const readme of readmes) {
@@ -67,11 +75,17 @@ export function resolveConstantEntries<
   }
   for (const value of values) {
     const object = objects.find(({ data }) => data.id === value.data.objectId);
+    if (object?.data.type !== "mathematical-constant" || value.id !== `${object.id}/data/value`) {
+      throw new Error(`Constant value data "${value.id}" must belong to a mathematical-constant object.`);
+    }
+  }
+  for (const dataset of constantDatasets) {
+    const object = objects.find(({ data }) => data.id === dataset.data.objectId);
     if (
       object?.data.type !== "mathematical-constant" ||
-      value.id !== `${object.id}/data/value`
+      dataset.id !== `${object.id}/data/${dataset.data.format}`
     ) {
-      throw new Error(`Value data "${value.id}" must belong to a mathematical-constant object.`);
+      throw new Error(`Constant dataset "${dataset.id}" must belong to a mathematical-constant object.`);
     }
   }
 
@@ -82,6 +96,14 @@ export function resolveConstantEntries<
     const readme = readmesById.get(directory);
     const japaneseReadme = readmesById.get(`${directory}/ja`);
     const value = valuesById.get(id);
+    const digest = constantDatasets.find(
+      (dataset): dataset is ConstantDigestDataset =>
+        dataset.id === `${directory}/data/digest`,
+    );
+    const standard = constantDatasets.find(
+      (dataset): dataset is ConstantStandardDataset =>
+        dataset.id === `${directory}/data/standard`,
+    );
     if (!identity || identity.type !== "mathematical-constant" || identity.slug !== directory) {
       throw new Error(`Constant "${directory}" requires a matching mathematical-constant identity.`);
     }
@@ -99,12 +121,40 @@ export function resolveConstantEntries<
     }
     if (
       value.id !== `${directory}/data/value` ||
-      value.data.format !== "decimal-constant" ||
-      value.data.valueType !== "irrational" ||
-      value.data.approximationMethod !== "truncated" ||
-      value.data.decimalPlaces !== value.data.decimalApproximation.split(".")[1]?.length
+      value.data.format !== "exact-constant" ||
+      value.data.valueType !== "irrational"
     ) {
       throw new Error(`Invalid value data for constant "${directory}".`);
+    }
+    if (
+      !digest ||
+      !standard
+    ) {
+      throw new Error(`Constant "${directory}" requires digest.json and standard.json.`);
+    }
+    if (
+      digest.data.format !== "digest" ||
+      digest.data.valueType !== "irrational" ||
+      typeof digest.data.value !== "number" ||
+      !Number.isFinite(digest.data.value) ||
+      digest.data.approximationMethod !== "truncated" ||
+      digest.data.decimalPlaces !== 16
+    ) {
+      throw new Error(`Invalid digest data for constant "${directory}".`);
+    }
+    const standardDigits = typeof standard.data.value === "string"
+      ? standard.data.value.split(".")[1]?.length
+      : undefined;
+    if (
+      standard.data.format !== "standard" ||
+      standard.data.valueType !== "irrational" ||
+      standard.data.valueEncoding !== "decimal-string" ||
+      typeof standard.data.value !== "string" ||
+      standard.data.approximationMethod !== "truncated" ||
+      standard.data.decimalPlaces !== 256 ||
+      standardDigits !== 256
+    ) {
+      throw new Error(`Invalid standard data for constant "${directory}".`);
     }
     const relatedObjects = (object.data.relatedObjectIds ?? []).map((relatedId) => {
       const relatedIdentity = identitiesById.get(relatedId);
@@ -116,6 +166,6 @@ export function resolveConstantEntries<
     if (new Set(relatedObjects.map(({ id: relatedId }) => relatedId)).size !== relatedObjects.length) {
       throw new Error(`Duplicate related object in objects/${directory}/object.json.`);
     }
-    return { identity, object, readme, japaneseReadme, value, relatedObjects };
+    return { identity, object, readme, japaneseReadme, value, digest, standard, relatedObjects };
   });
 }

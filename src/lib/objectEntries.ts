@@ -1,5 +1,10 @@
 import { conceptRegistry, publishedConcepts } from "./conceptRegistry";
 import { integerSequenceIdentities, type ObjectIdentity, validateObjectIdentities } from "./objectIdentity";
+import type {
+  IntegerSequenceDigestDataset,
+  IntegerSequenceStandardDataset,
+  ObjectDatasetEntry,
+} from "./objectDatasetTypes";
 
 export function filterIntegerSequenceEntries<
   DataEntry extends { id: string; data: { type: string } },
@@ -25,33 +30,19 @@ export function resolveObjectEntries<
     };
   },
   ReadmeEntry extends { id: string; body?: string },
-  DatasetEntry extends {
-    id: string;
-    data:
-      | {
-          objectId: string;
-          format: "digest";
-          indexOrigin: number;
-          terms: readonly number[];
-        }
-      | {
-          objectId: string;
-          format: "standard";
-          indexOrigin: number;
-          valueEncoding: "base10-integer-string";
-          terms: readonly string[];
-        };
-  },
 >(
   dataEntries: readonly DataEntry[],
   readmes: readonly ReadmeEntry[],
-  datasets: readonly DatasetEntry[],
+  datasets: readonly ObjectDatasetEntry[],
   identities: readonly ObjectIdentity[] = integerSequenceIdentities,
 ) {
   validateObjectIdentities(identities);
   const dataById = new Map(dataEntries.map((entry) => [entry.data.id, entry]));
   const readmesById = new Map(readmes.map((entry) => [entry.id, entry]));
-  const datasetsById = new Map(datasets.map((entry) => [entry.id, entry]));
+  const sequenceDatasets = datasets.filter(
+    (dataset): dataset is IntegerSequenceDigestDataset | IntegerSequenceStandardDataset =>
+      "terms" in dataset.data,
+  );
   const publishedIds = new Set(identities.map(({ id }) => id));
   const identitiesById = new Map(identities.map((identity) => [identity.id, identity]));
 
@@ -80,7 +71,7 @@ export function resolveObjectEntries<
   }
 
   const datasetSeenIds = new Set<string>();
-  for (const dataset of datasets) {
+  for (const dataset of sequenceDatasets) {
     const [directory, category, format, ...extraParts] = dataset.id.split("/");
     const objectId = dataset.data.objectId;
     const source = dataById.get(objectId);
@@ -100,7 +91,7 @@ export function resolveObjectEntries<
     datasetSeenIds.add(dataset.id);
     const expectedCount = format === "digest" ? 16 : 256;
     const validTerms = dataset.data.format === "digest"
-      ? dataset.data.terms.every((term) => Number.isSafeInteger(term))
+      ? dataset.data.terms.every((term) => typeof term === "number" && Number.isSafeInteger(term))
       : dataset.data.terms.every((term) => typeof term === "string" && /^-?(0|[1-9]\d*)$/.test(term));
     const validEncoding = dataset.data.format === "digest" || dataset.data.valueEncoding === "base10-integer-string";
     if (dataset.data.indexOrigin !== 0 || !validEncoding || dataset.data.terms.length !== expectedCount || !validTerms) {
@@ -124,12 +115,21 @@ export function resolveObjectEntries<
     if (japaneseReadme && !japaneseReadme.body?.trim()) {
       throw new Error(`Japanese README must not be empty for "${sourceDirectory}".`);
     }
-    const digest = datasetsById.get(`${sourceDirectory}/data/digest`);
-    const standard = datasetsById.get(`${sourceDirectory}/data/standard`);
+    const digest = sequenceDatasets.find(
+      (dataset): dataset is IntegerSequenceDigestDataset =>
+        dataset.id === `${sourceDirectory}/data/digest`,
+    );
+    const standard = sequenceDatasets.find(
+      (dataset): dataset is IntegerSequenceStandardDataset =>
+        dataset.id === `${sourceDirectory}/data/standard`,
+    );
     if (!readme?.body?.trim()) {
       throw new Error(`Object "${id}" requires non-empty objects/${sourceDirectory}/README.md.`);
     }
-    if (!digest || !standard) {
+    if (
+      !digest ||
+      !standard
+    ) {
       throw new Error(`Object "${id}" requires objects/${sourceDirectory}/data/digest.json and standard.json.`);
     }
     const conceptId = publishedConcepts.find((candidate) => candidate === object.data.conceptId);

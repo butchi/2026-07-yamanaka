@@ -4,14 +4,15 @@ import { resolveConstantEntries } from "@/lib/constantEntries";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
-  const [objects, readmes, values] = await Promise.all([
+  const [objects, readmes, values, datasets] = await Promise.all([
     getCollection("objects"),
     getCollection("objectReadmes"),
     getCollection("objectValues"),
+    getCollection("datasets"),
   ]);
-  return resolveConstantEntries(objects, readmes, values).map(({ object, identity, readme, japaneseReadme, value, relatedObjects }) => ({
+  return resolveConstantEntries(objects, readmes, values, datasets).map(({ object, identity, readme, japaneseReadme, value, digest, standard, relatedObjects }) => ({
     params: { slug: identity.slug },
-    props: { constant: object, identity, readme, japaneseReadme, value, relatedObjects },
+    props: { constant: object, identity, readme, japaneseReadme, value, digest, standard, relatedObjects },
   }));
 }
 

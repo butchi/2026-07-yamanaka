@@ -60,7 +60,7 @@ const datasets = defineCollection({
     base: "./objects",
     generateId: ({ entry }) => entry.replace(/\.json$/, ""),
   }),
-  schema: z.discriminatedUnion("format", [
+  schema: z.union([
     z.object({
       objectId,
       format: z.literal("digest"),
@@ -73,6 +73,18 @@ const datasets = defineCollection({
           message: "digest data must contain exactly 16 terms.",
           path: ["terms"],
         });
+      }
+    }),
+    z.object({
+      objectId,
+      format: z.literal("digest"),
+      valueType: z.literal("irrational"),
+      value: z.number().gte(Number.MIN_SAFE_INTEGER).lte(Number.MAX_SAFE_INTEGER),
+      approximationMethod: z.literal("truncated"),
+      decimalPlaces: z.literal(16),
+    }).strict().superRefine((dataset, context) => {
+      if (!Number.isFinite(dataset.value)) {
+        context.addIssue({ code: "custom", message: "digest value must be finite.", path: ["value"] });
       }
     }),
     z.object({
@@ -90,6 +102,23 @@ const datasets = defineCollection({
         });
       }
     }),
+    z.object({
+      objectId,
+      format: z.literal("standard"),
+      valueType: z.literal("irrational"),
+      valueEncoding: z.literal("decimal-string"),
+      value: z.string().regex(/^-?(0|[1-9]\d*)\.\d+$/),
+      approximationMethod: z.literal("truncated"),
+      decimalPlaces: z.literal(256),
+    }).strict().superRefine((dataset, context) => {
+      if (dataset.value.split(".")[1]?.length !== dataset.decimalPlaces) {
+        context.addIssue({
+          code: "custom",
+          message: "standard value must contain exactly 256 decimal places.",
+          path: ["value"],
+        });
+      }
+    }),
   ]),
 });
 
@@ -101,23 +130,11 @@ const objectValues = defineCollection({
   }),
   schema: z.object({
     objectId,
-    format: z.literal("decimal-constant"),
+    format: z.literal("exact-constant"),
     valueType: z.literal("irrational"),
     symbol: z.string().trim().min(1),
     exactValue: z.string().trim().min(1),
-    decimalApproximation: z.string().regex(/^-?(0|[1-9]\d*)\.\d+$/),
-    approximationMethod: z.literal("truncated"),
-    decimalPlaces: z.number().int().positive(),
-  }).strict().superRefine((value, context) => {
-    const decimalPlaces = value.decimalApproximation.split(".")[1]?.length;
-    if (decimalPlaces !== value.decimalPlaces) {
-      context.addIssue({
-        code: "custom",
-        message: "decimalPlaces must match the stored approximation.",
-        path: ["decimalPlaces"],
-      });
-    }
-  }),
+  }).strict(),
 });
 
 export const collections = { objectReadmes, objects, datasets, objectValues };

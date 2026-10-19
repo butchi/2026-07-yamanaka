@@ -18,7 +18,7 @@ const [objects, readmes, datasets, objectValues] = await Promise.all([
 ]);
 const sequences = filterIntegerSequenceEntries(objects, readmes);
 const concepts = resolveObjectEntries(sequences.objects, sequences.readmes, datasets);
-const constantEntries = resolveConstantEntries(objects, readmes, objectValues);
+const constantEntries = resolveConstantEntries(objects, readmes, objectValues, datasets);
 ---
 
 <BaseLayout
@@ -72,7 +72,7 @@ const constantEntries = resolveConstantEntries(objects, readmes, objectValues);
         </article>
       );
     })}
-    {constantEntries.map(({ object, identity, value }) => (
+    {constantEntries.map(({ object, identity, value, digest }) => (
       <article class="catalog-item">
         <div class="catalog-item__summary">
           <div>
@@ -88,12 +88,13 @@ const constantEntries = resolveConstantEntries(objects, readmes, objectValues);
             <dd><code>{value.data.symbol} = {value.data.exactValue}</code></dd>
           </div>
           <div>
-            <dt>{t("Decimal approximation", "小数近似")}</dt>
-            <dd><code>{value.data.decimalApproximation}…</code></dd>
+            <dt>{t("Digest approximation (16 decimal places)", "ダイジェスト近似値（小数点以下16桁）")}</dt>
+            <dd><code>{digest.data.value}</code></dd>
           </div>
         </dl>
         <p class="dataset-links">
-          <a href={`/objects/${identity.id}/data/value.json`} target="_blank" rel="noopener">{t("Value data (JSON)", "値データ（JSON）")}</a>
+          <a href={`/objects/${identity.id}/data/digest.json`} target="_blank" rel="noopener">{t("Digest JSON", "ダイジェストJSON")}</a>
+          <a href={`/objects/${identity.id}/data/standard.json`} target="_blank" rel="noopener">{t("Standard JSON (256 decimal places)", "標準JSON（小数点以下256桁）")}</a>
         </p>
         <div class="catalog-item__footer">
           <p><span class="support-badge">{t("Exact symbolic value", "記号による厳密値")}</span></p>

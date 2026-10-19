@@ -21,7 +21,7 @@ for (const identity of mathematicalConstantIdentities) {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/constants/${identity.slug}/$`));
     const response = await request.get(`/objects/${identity.id}/data/value.json`);
     expect(response.ok()).toBeTruthy();
-    expect(await response.json()).toMatchObject({ objectId: identity.id, format: "decimal-constant" });
+    expect(await response.json()).toMatchObject({ objectId: identity.id, format: "exact-constant" });
   });
 }
 

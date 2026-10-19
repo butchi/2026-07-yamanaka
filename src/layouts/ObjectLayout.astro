@@ -14,6 +14,7 @@ import {
   type ConceptRegistryEntry,
   type UiOperation,
 } from "@/lib/conceptRegistry";
+import type { IntegerSequenceDigestDataset } from "@/lib/objectDatasetTypes";
 
 interface Props {
   concept: ConceptRegistryEntry;
@@ -21,7 +22,7 @@ interface Props {
   sourceDirectory: string;
   object: CollectionEntry<"objects">;
   readme: CollectionEntry<"objectReadmes">;
-  digest: CollectionEntry<"datasets">;
+  digest: IntegerSequenceDigestDataset;
   relatedObjects: readonly { identity: ObjectIdentity; concept: ConceptRegistryEntry; hasJapanese: boolean }[];
 }
 
